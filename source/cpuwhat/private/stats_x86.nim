@@ -280,26 +280,25 @@ proc isHypervisorPresent*() :bool {.inline.} =
   ## (this is by no means foolproof).
 
 proc hasSimultaneousMultithreading*() :bool {.inline.} =
-  return hasSimultaneousMultithreadingImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware is utilizing simultaneous multithreading
   ## (branded as *"hyperthreads"* on Intel processors).
+  hasSimultaneousMultithreadingImpl
 
 proc hasIntelVTX*() :bool {.inline.} =
-  return hasIntelVTXImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the Intel virtualization extensions (VT-x) are available.
+  hasIntelVTXImpl
 
 proc hasAMDV*() :bool {.inline.} =
-  return hasAMDVImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the AMD virtualization extensions (AMD-V) are available.
+  hasAMDVImpl
 
 proc hasX87FPU*() :bool {.inline.} =
-  return hasx87FPUImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use x87 floating-point instructions
@@ -311,9 +310,9 @@ proc hasX87FPU*() :bool {.inline.} =
   ## instructions is deprecated on 64-bit versions of Windows - see MSDN_.
   ##
   ## .. _MSDN: https://docs.microsoft.com/en-us/windows/win32/dxtecharts/sixty-four-bit-programming-for-game-developers#porting-applications-to-64-bit-platforms
+  hasx87FPUImpl
 
 proc hasMMX*() :bool {.inline.} =
-  return hasMMXImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use MMX SIMD instructions.
@@ -324,9 +323,9 @@ proc hasMMX*() :bool {.inline.} =
   ## more info).
   ##
   ## .. _MSDN: https://docs.microsoft.com/en-us/windows/win32/dxtecharts/sixty-four-bit-programming-for-game-developers#porting-applications-to-64-bit-platforms
+  hasMMXImpl
 
 proc hasMMXExt*() :bool {.inline.} =
-  return hasMMXExtImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use "Extended MMX" SIMD instructions.
@@ -335,9 +334,9 @@ proc hasMMXExt*() :bool {.inline.} =
   ## 64-bit versions of Windows (see MSDN_ for more info).
   ##
   ## .. _MSDN: https://docs.microsoft.com/en-us/windows/win32/dxtecharts/sixty-four-bit-programming-for-game-developers#porting-applications-to-64-bit-platforms
+  hasMMXExtImpl
 
 proc has3DNow*() :bool {.inline.} =
-  return has3DNowImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use 3DNow! SIMD instructions.
@@ -350,9 +349,9 @@ proc has3DNow*() :bool {.inline.} =
   ##
   ## .. _MSDN: https://docs.microsoft.com/en-us/windows/win32/dxtecharts/sixty-four-bit-programming-for-game-developers#porting-applications-to-64-bit-platforms
   ## .. _`AMD Developer Central`: https://web.archive.org/web/20131109151245/http://developer.amd.com/community/blog/2010/08/18/3dnow-deprecated/
+  has3DNowImpl
 
 proc has3DNowEnhanced*() :bool {.inline.} =
-  return has3DNowEnhancedImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use "Enhanced 3DNow!" SIMD instructions.
@@ -365,18 +364,18 @@ proc has3DNowEnhanced*() :bool {.inline.} =
   ##
   ## .. _MSDN: https://docs.microsoft.com/en-us/windows/win32/dxtecharts/sixty-four-bit-programming-for-game-developers#porting-applications-to-64-bit-platforms
   ## .. _`AMD Developer Central`: https://web.archive.org/web/20131109151245/http://developer.amd.com/community/blog/2010/08/18/3dnow-deprecated/
+  has3DNowEnhancedImpl
 
 proc hasPrefetch*() :bool {.inline.} =
-  return hasPrefetchImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use the `PREFETCH` and `PREFETCHW`
   ## instructions. These instructions originally included as part of 3DNow!, but
   ## potentially indepdendent from the rest of it due to changes in contemporary
   ## AMD processors (see above).
+  hasPrefetchImpl
 
 proc hasSSE*() :bool {.inline.} =
-  return hasSSEImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use the SSE (Streaming SIMD Extensions)
@@ -384,9 +383,9 @@ proc hasSSE*() :bool {.inline.} =
   ##
   ## By virtue of SSE2 enforced compliance on AMD64 CPUs, this should always be
   ## `true` on 64-bit x86 processors.
+  hasSSEImpl
 
 proc hasSSE2*() :bool {.inline.} =
-  return hasSSE2Impl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use the SSE (Streaming SIMD Extensions)
@@ -394,225 +393,225 @@ proc hasSSE2*() :bool {.inline.} =
   ##
   ## By virtue of SSE2 enforced compliance on AMD64 CPUs, this should always be
   ## `true` on 64-bit x86 processors.
+  hasSSE2Impl
 
 proc hasSSE3*() :bool {.inline.} =
-  return hasSSE3Impl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use SSE (Streaming SIMD Extensions) 3.0
   ## instructions.
+  hasSSE3Impl
 
 proc hasSSSE3*() :bool {.inline.} =
-  return hasSSSE3Impl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use Supplemental SSE (Streaming SIMD
   ## Extensions) 3.0 instructions.
+  hasSSSE3Impl
 
 proc hasSSE4a*() :bool {.inline.} =
-  return hasSSE4aImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use Supplemental SSE (Streaming SIMD
   ## Extensions) 4a instructions.
+  hasSSE4aImpl
 
 proc hasSSE41*() :bool {.inline.} =
-  return hasSSE41Impl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use Supplemental SSE (Streaming SIMD
   ## Extensions) 4.1 instructions.
+  hasSSE41Impl
 
 proc hasSSE42*() :bool {.inline.} =
-  return hasSSE42Impl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use Supplemental SSE (Streaming SIMD
   ## Extensions) 4.2 instructions.
+  hasSSE42Impl
 
 proc hasAVX*() :bool {.inline.} =
-  return hasAVXImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
   ## 1.0 instructions, which introduced 256-bit SIMD on x86 machines along with
   ## addded reencoded versions of prior 128-bit SSE instructions into the more
   ## code-dense and non-backward compatible VEX (Vector Extensions) format.
+  hasAVXImpl
 
 proc hasAVX2*() :bool {.inline.} =
-  return hasAVX2Impl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions) 2.0
   ## instructions.
+  hasAVX2Impl
 
 proc hasAVX512F*() :bool {.inline.} =
-  return hasAVX512FImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
   ## 512-bit F (Foundation) instructions.
+  hasAVX512FImpl
 
 proc hasAVX512DQ*() :bool {.inline.} =
-  return hasAVX512DQImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
   ## 512-bit DQ (Doubleword + Quadword) instructions.
+  hasAVX512DQImpl
 
 proc hasAVX512IFMA*() :bool {.inline.} =
-  return hasAVX512IFMAImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
   ## 512-bit IFMA (Integer Fused Multiply Accumulation) instructions.
+  hasAVX512IFMAImpl
 
 proc hasAVX512PF*() :bool {.inline.} =
-  return hasAVX512PFImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
   ## 512-bit PF (Prefetch) instructions.
+  hasAVX512PFImpl
 
 proc hasAVX512ER*() :bool {.inline.} =
-  return hasAVX512ERImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
   ## 512-bit ER (Exponential and Reciprocal) instructions.
+  hasAVX512ERImpl
 
 proc hasAVX512CD*() :bool {.inline.} =
-  return hasAVX512CDImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
   ## 512-bit CD (Conflict Detection) instructions.
+  hasAVX512CDImpl
 
 proc hasAVX512BW*() :bool {.inline.} =
-  return hasAVX512BWImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
   ## 512-bit BW (Byte and Word) instructions.
+  hasAVX512BWImpl
 
 proc hasAVX512VL*() :bool {.inline.} =
-  return hasAVX512VLImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
   ## 512-bit VL (Vector Length) instructions.
+  hasAVX512VLImpl
 
 proc hasAVX512VBMI*() :bool {.inline.} =
-  return hasAVX512VBMIImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
   ## 512-bit VBMI (Vector Byte Manipulation) 1.0 instructions.
+  hasAVX512VBMIImpl
 
 proc hasAVX512VBMI2*() :bool {.inline.} =
-  return hasAVX512VBMI2Impl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
   ## 512-bit VBMI (Vector Byte Manipulation) 2.0 instructions.
+  hasAVX512VBMI2Impl
 
 proc hasAVX512VPOPCNTDQ*() :bool {.inline.} =
-  return hasAVX512VPOPCNTDQImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use the AVX (Advanced Vector Extensions)
   ## 512-bit `VPOPCNTDQ` (population count, i.e. determine number of flipped
   ## bits) instruction.
+  hasAVX512VPOPCNTDQImpl
 
 proc hasAVX512VNNI*() :bool {.inline.} =
-  return hasAVX512VNNIImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
   ## 512-bit VNNI (Vector Neural Network) instructions.
+  hasAVX512VNNIImpl
 
 proc hasAVX512VNNIW4*() :bool {.inline.} =
-  return hasAVX512VNNIW4Impl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
   ## 512-bit 4VNNIW (Vector Neural Network Word Variable Percision)
   ## instructions.
+  hasAVX512VNNIW4Impl
 
 proc hasAVX512FMAPS4*() :bool {.inline.} =
-  return hasAVX512FMAPS4Impl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
   ## 512-bit 4FMAPS (Fused-Multiply-Accumulation Single-percision) instructions.
+  hasAVX512FMAPS4Impl
 
 proc hasAVX512BITALG*() :bool {.inline.} =
-  return hasAVX512BITALGImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
   ## 512-bit BITALG (Bit Algorithms) instructions.
+  hasAVX512BITALGImpl
 
 proc hasAVX512BFLOAT16*() :bool {.inline.} =
-  return hasAVX512BFLOAT16Impl
   ## **(x86 Only)**
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
   ## 512-bit BFLOAT16 (8-bit exponent, 7-bit mantissa) instructions used by
   ## Intel DL (Deep Learning) Boost.
+  hasAVX512BFLOAT16Impl
 
 proc hasAVX512VP2INTERSECT*() :bool {.inline.} =
-  return hasAVX512VP2INTERSECTImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
   ## 512-bit VP2INTERSECT (Compute Intersections between Dualwords + Quadwords)
   ## instructions.
+  hasAVX512VP2INTERSECTImpl
 
 proc hasRDRAND*() :bool {.inline.} =
-  return hasRDRANDImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the `RDRAND` instruction,
   ## i.e. Intel on-CPU hardware random number generation.
+  hasRDRANDImpl
 
 proc hasRDSEED*() :bool {.inline.} =
-  return hasRDSEEDImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the `RDSEED` instruction,
   ## i.e. Intel on-CPU hardware random number generation (used for seeding other
   ## PRNGs).
+  hasRDSEEDImpl
 
 proc hasMOVBigEndian*() :bool {.inline.} =
-  return hasMOVBigEndianImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the `MOVBE` instruction for
   ## endianness/byte-order switching.
+  hasMOVBigEndianImpl
 
 proc hasPOPCNT*() :bool {.inline.} =
-  return hasPOPCNTImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the `POPCNT` (population
   ## count, i.e. determine number of flipped bits) instruction.
+  hasPOPCNTImpl
 
 proc hasFMA3*() :bool {.inline.} =
-  return hasFMA3Impl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the FMA3 (Fused Multiply
   ## Accumulation 3-operand) SIMD instructions.
+  hasFMA3Impl
 
 proc hasFMA4*() :bool {.inline.} =
-  return hasFMA4Impl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the FMA4 (Fused Multiply
   ## Accumulation 4-operand) SIMD instructions.
+  hasFMA4Impl
 
 proc hasXOP*() :bool {.inline.} =
-  return hasXOPImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the XOP (eXtended
@@ -620,160 +619,161 @@ proc hasXOP*() :bool {.inline.} =
   ## Bulldozer AMD microarchitecture family (i.e. Bulldozer, Piledriver,
   ## Steamroller, and Excavator) and were phased out with the release of the Zen
   ## design.
+  hasXOPImpl
 
 proc hasCAS8B*() :bool {.inline.} =
-  return hasCAS8BImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the (`LOCK`-able)
   ## `CMPXCHG8B` 64-bit compare-and-swap instruction.
+  hasCAS8BImpl
 
 proc hasCAS16B*() :bool {.inline.} =
-  return hasCAS16BImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the (`LOCK`-able)
   ## `CMPXCHG16B` 128-bit compare-and-swap instruction.
+  hasCAS16BImpl
 
 proc hasABM*() :bool {.inline.} =
-  return hasABMImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for ABM (Advanced Bit
   ## Manipulation) insturctions (i.e. `POPCNT` and `LZCNT` for counting leading
   ## zeroes).
+  hasABMImpl
 
 proc hasBMI1*() :bool {.inline.} =
-  return hasBMI1Impl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for BMI (Bit Manipulation) 1.0
   ## instructions.
+  hasBMI1Impl
 
 proc hasBMI2*() :bool {.inline.} =
-  return hasBMI2Impl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for BMI (Bit Manipulation) 2.0
   ## instructions.
+  hasBMI2Impl
 
 proc hasTSXHLE*() :bool {.inline.} =
-  return hasTSXHLEImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for HLE (Hardware Lock Elision)
   ## as part of Intel's TSX (Transactional Synchronization Extensions).
+  hasTSXHLEImpl
 
 proc hasTSXRTM*() :bool {.inline.} =
-  return hasTSXRTMImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for RTM (Restricted
   ## Transactional Memory) as part of Intel's TSX (Transactional Synchronization
   ## Extensions).
+  hasTSXRTMImpl
 
 proc hasADX*() :bool {.inline.} =
-  return hasADXImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for ADX (Multi-percision
   ## Add-Carry Extensions) insructions.
+  hasADXImpl
 
 proc hasSGX*() :bool {.inline.} =
-  return hasSGXImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for SGX (Software Guard
   ## eXtensions) memory encryption technology.
+  hasSGXImpl
 
 proc hasGFNI*() :bool {.inline.} =
-  return hasGFNIImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for GFNI (Galois Field Affine
   ## Transformation) instructions.
+  hasGFNIImpl
 
 proc hasAES*() :bool {.inline.} =
-  return hasAESImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for AESNI (Advanced Encryption
   ## Standard) instructions.
+  hasAESImpl
 
 proc hasVAES*() :bool {.inline.} =
-  return hasVAESImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for VAES (Vectorized Advanced
   ## Encryption Standard) instructions.
+  hasVAESImpl
 
 proc hasVPCLMULQDQ*() :bool {.inline.} =
-  return hasVPCLMULQDQImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for `VCLMULQDQ` (512 and 256-bit
   ## Carryless Multiplication) instructions.
+  hasVPCLMULQDQImpl
 
 proc hasPCLMULQDQ*() :bool {.inline.} =
-  return hasPCLMULQDQImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for `PCLMULQDQ` (128-bit
   ## Carryless Multiplication) instructions.
+  hasPCLMULQDQImpl
 
 proc hasNXBit*() :bool {.inline.} =
-  return hasNXBitImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for NX-bit (No-eXecute)
   ## technology for marking pages of memory as non-executable.
+  hasNXBitImpl
 
 proc hasFloat16c*() :bool {.inline.} =
-  return hasFloat16cImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for F16C instructions, used for
   ## converting 16-bit "half-percision" floating-point values to and from
   ## single-percision floating-point values.
+  hasFloat16cImpl
 
 proc hasSHA*() :bool {.inline.} =
-  return hasSHAImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for SHA (Secure Hash Algorithm)
   ## instructions.
+  hasSHAImpl
 
 proc hasCLFLUSH*() :bool {.inline.} =
-  return hasCLFLUSHImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the `CLFLUSH` (Cache-line
   ## Flush) instruction.
+  hasCLFLUSHImpl
 
 proc hasCLFLUSHOPT*() :bool {.inline.} =
-  return hasCLFLUSHOPTImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the `CLFLUSHOPT` (Cache-line
   ## Flush Optimized) instruction.
+  hasCLFLUSHOPTImpl
 
 proc hasCLWB*() :bool {.inline.} =
-  return hasCLWBImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the `CLWB` (Cache-line Write
   ## Back) instruction.
+  hasCLWBImpl
 
 proc hasPrefetchWT1*() :bool {.inline.} =
-  return hasPrefetchWT1Impl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the `PREFECTHWT1`
   ## instruction.
+  hasPrefetchWT1Impl
 
 proc hasMPX*() :bool {.inline.} =
-  return hasMPXImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for MPX (Memory Protection
   ## eXtensions).
+  hasMPXImpl

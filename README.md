@@ -1,5 +1,6 @@
+
 <p align="center">
-  <img src=https://user-images.githubusercontent.com/41453959/65982727-98424d80-e441-11e9-9e93-7c512244bbd3.png 
+  <img src=https://user-images.githubusercontent.com/41453959/65995578-6e962000-e45b-11e9-9fc5-f793d6523953.png 
        width="300px">
 </p>
 
@@ -16,3 +17,16 @@ include:
 - [ ] Querying CPU Cache Topology
 - [X] Testing Presence of CPU Instruction Set Extensions
 - [ ] SIMD Intrinsics
+
+### Query Example
+
+```nim
+import cpuwhat / stats
+
+echo(cpuName())
+echo("has SSE2:     ", hasSse2)
+echo("has AVX512BW: ", hasAvx512bw)
+```
+### License
+
+Uses the Internet Systems Consortium (ISC) open-source license.

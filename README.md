@@ -24,8 +24,8 @@ include:
 import cpuwhat / stats
 
 echo(cpuName())
-echo("has SSE2:     ", hasSse2)
-echo("has AVX512BW: ", hasAvx512bw)
+echo("has SSE2:     ", hasSSE2)
+echo("has AVX512BW: ", hasAVX512BW)
 ```
 ### License
 

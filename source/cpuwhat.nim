@@ -4,7 +4,7 @@ const
   OnARM = defined(arm) or defined(arm64)
 
 when OnX86 or defined(nimdoc):
-  include cpuinfo / private / stats_x86
+  include cpuwhat / private / information_x86
 
 proc cpuName*() :string =
   ## The CPU's full name, for example: `"Intel(R) Core(TM) i3-8350K CPU @

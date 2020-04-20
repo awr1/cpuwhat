@@ -20,11 +20,11 @@ include:
 ### Query Example
 
 ```nim
-import cpuwhat / stats
+import cpuwhat
 
 echo(cpuName())
-echo("has SSE2:     ", hasSSE2)
-echo("has AVX512BW: ", hasAVX512BW)
+echo("has SSE2:     ", hasSSE2())
+echo("has AVX512BW: ", hasAVX512BW())
 ```
 ### License
 

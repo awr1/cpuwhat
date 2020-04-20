@@ -1,8 +1,7 @@
-
 # Package
 version     = "0.1.0"
 author      = "A. W. Rohan"
-description = "Assorted utilities for advanced CPU operations"
+description = "Assorted Utilities for Advanced CPU Operations"
 license     = "ISC"
 srcDir      = "source"
 

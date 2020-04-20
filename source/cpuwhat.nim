@@ -1,4 +1,3 @@
-
 const
   OnX86 = defined(i386) or defined(amd64)
   OnARM = defined(arm) or defined(arm64)

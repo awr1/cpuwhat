@@ -272,11 +272,11 @@ let
 # be a "cpuCore" argument added to the feature procs.
 
 proc isHypervisorPresent*() :bool {.inline.} =
-  isHypervisorPresentImpl
   ## **(x86 Only)**
   ##
   ## Reports `true` if this application is running inside of a virtual machine
   ## (this is by no means foolproof).
+  isHypervisorPresentImpl
 
 proc hasSimultaneousMultithreading*() :bool {.inline.} =
   ## **(x86 Only)**

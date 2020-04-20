@@ -1,4 +1,3 @@
-
 proc cpuidX86(eaxi, ecxi :int32): tuple[eax, ebx, ecx, edx :int32] =
   when defined(vcc):
     # limited inline asm support in vcc, so intrinsics, here we go:

@@ -7,3 +7,4 @@ srcDir      = "source"
 
 # Dependencies
 requires "nim >= 1.0.0"
+requires "nimterop >= 0.4.4"

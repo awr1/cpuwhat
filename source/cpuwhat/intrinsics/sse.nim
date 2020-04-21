@@ -7,8 +7,6 @@ when defined(gcc) or defined(clang):
   {.passC: "-msse".}
 
 static:
-  cDebug()
-  cDisableCaching()
   cAddStdDir()
   when defined(unix):
     cDefine("__attribute__\\(x\\)", " ")

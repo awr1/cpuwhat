@@ -9,7 +9,7 @@ when GCCLike:
 
 static:
   cAddStdDir()
-  when defined(unix):
+  when Unix:
     cDefine("__attribute__\\(x\\)", " ")
   else:
     cDefine("__attribute__(x)", " ")

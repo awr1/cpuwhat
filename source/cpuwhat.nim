@@ -1,8 +1,6 @@
-const
-  OnX86 = defined(i386) or defined(amd64)
-  OnARM = defined(arm) or defined(arm64)
+import cpuwhat / private / consts
 
-when OnX86 or defined(nimdoc):
+when X86 or defined(nimdoc):
   include cpuwhat / private / info_x86
 
 proc cpuName*() :string =
@@ -11,5 +9,5 @@ proc cpuName*() :string =
   ##
   ## **NOTE:** If a CPU's name is somehow not retrievable, the value will just
   ## be the empty string.
-  when OnX86: cpuNameX86()
-  else:       ""
+  when X86: cpuNameX86()
+  else:     ""

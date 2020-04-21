@@ -1,9 +1,10 @@
 import
+  cpuwhat / private / consts,
   nimterop / build,
   nimterop / cimport,
   std / os
 
-when defined(gcc) or defined(clang):
+when GCCLike:
   {.passC: "-msse".}
 
 static:

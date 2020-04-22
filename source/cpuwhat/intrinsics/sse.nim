@@ -48,4 +48,6 @@ cPlugin:
   proc onSymbol*(sym :var Symbol) {.exportc, dynlib.} =
     sym.name = sym.name.strip(chars = {'_'})
 
-cImport(cSearchPath("xmmintrin.h"), recurse = true, flags = ToastFlags)
+cImport(cSearchPath("mmintrin.h"),  flags = ToastFlags)
+cImport(cSearchPath("mm_alloc.h"),  flags = ToastFlags)
+cImport(cSearchPath("xmmintrin.h"), flags = ToastFlags)

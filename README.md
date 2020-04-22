@@ -27,7 +27,7 @@ echo("has SSE2:     ", hasSSE2())
 echo("has AVX512BW: ", hasAVX512BW())
 ```
 
-## Intrinsics Example
+### Intrinsics Example
 
 ```nim
 import cpuwhat / intrinsics / sse

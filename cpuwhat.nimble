@@ -1,7 +1,7 @@
 # Package
 version     = "0.1.0"
 author      = "A. W. Rohan"
-description = "Assorted Utilities for Advanced CPU Operations"
+description = "Nim utilities for advanced CPU operations: CPU identification, bindings to assorted SIMD intrinsics"
 license     = "ISC"
 srcDir      = "source"
 

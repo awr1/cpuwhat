@@ -13,5 +13,5 @@ const
 
   ToastDefines = ["__inline", "__attribute__(x)", "__extension__"]
   ToastProto   = "-f:ast2 -H " & ToastDefines.mapIt("-D " & it & "= ").join
-  ToastFlags*  = when Unix: ToastProto.multiReplace(("(", "\\("), (")"), "\\)")
+  ToastFlags*  = when Unix: ToastProto.multiReplace(("(", "\\("), (")", "\\)"))
                  else:      ToastProto

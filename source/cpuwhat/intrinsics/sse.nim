@@ -48,13 +48,4 @@ cPlugin:
   proc onSymbol*(sym :var Symbol) {.exportc, dynlib.} =
     sym.name = sym.name.strip(chars = {'_'})
 
-# Defines are passed to `toast` - and `toast` only! cDefine() passes an
-# undesirable `-D` flag to the C compiler...
-
-const
-  Defines       = ["__inline", "__attribute__(x)", "__extension__"]
-  Flags         = "-f:ast2 -H " & Defines.mapIt("-D " & it & "= ").join
-  FlagsAdjusted = when Unix: Flags.multiReplace(("(", "\\("), (")"), "\\)")
-                  else:      Flags
-
-cImport(cSearchPath("xmmintrin.h"), recurse = true, flags = FlagsAdjusted)
+cImport(cSearchPath("xmmintrin.h"), recurse = true, flags = ToastFlags)

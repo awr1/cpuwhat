@@ -1,4 +1,4 @@
-proc cpuidX86(eaxi, ecxi :int32): tuple[eax, ebx, ecx, edx :int32] =
+proc cpuidX86(eaxi, ecxi :int32) :tuple[eax, ebx, ecx, edx :int32] =
   when defined(vcc):
     # limited inline asm support in vcc, so intrinsics, here we go:
     proc cpuidVcc(cpuInfo :ptr int32; functionID :int32)
@@ -21,7 +21,7 @@ proc cpuNameX86() :string =
 
 type
   X86Feature {.pure.} = enum
-    HypervisorPresence, Hyperthreading, NoSMT, IntelVTX, AMDV, x87FPU, MMX,
+    HypervisorPresence, Hyperthreading, NoSMT, IntelVTX, AMDV, X87FPU, MMX,
     MMXExt, F3DNow, F3DNowEnhanced, Prefetch, SSE, SSE2, SSE3, SSSE3, SSE4a,
     SSE41, SSE42, AVX, AVX2, AVX512F, AVX512DQ, AVX512IFMA, AVX512PF,
     AVX512ER, AVX512CD, AVX512BW, AVX512VL, AVX512VBMI, AVX512VBMI2,
@@ -48,7 +48,7 @@ proc testX86Feature(feature :X86Feature) :bool =
   #      Programming Reference
   result = case feature
     # leaf 1, edx
-    of x87FPU:
+    of X87FPU:
       leaf1.edx.test(0)
     of CLFLUSH:
       leaf1.edx.test(19)
@@ -201,7 +201,7 @@ let
                                       not testX86Feature(NoSMT)
   hasIntelVTXImpl                   = testX86Feature(IntelVTX)
   hasAMDVImpl                       = testX86Feature(AMDV)
-  hasx87FPUImpl                     = testX86Feature(x87FPU)
+  hasX87FPUImpl                     = testX86Feature(X87FPU)
   hasMMXImpl                        = testX86Feature(MMX)
   hasMMXExtImpl                     = testX86Feature(MMXExt)
   has3DNowImpl                      = testX86Feature(F3DNow)
@@ -309,7 +309,7 @@ proc hasX87FPU*() :bool {.inline.} =
   ## instructions is deprecated on 64-bit versions of Windows - see MSDN_.
   ##
   ## .. _MSDN: https://docs.microsoft.com/en-us/windows/win32/dxtecharts/sixty-four-bit-programming-for-game-developers#porting-applications-to-64-bit-platforms
-  hasx87FPUImpl
+  hasX87FPUImpl
 
 proc hasMMX*() :bool {.inline.} =
   ## **(x86 Only)**

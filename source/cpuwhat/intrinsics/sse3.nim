@@ -2,9 +2,7 @@ import
   cpuwhat / private / consts,
   nimterop / build,
   nimterop / cimport,
-  std / os,
-  std / strutils,
-  std / sequtils
+  std / os
 
 when GCCLike:
   const GCCFlags = "-msse3"

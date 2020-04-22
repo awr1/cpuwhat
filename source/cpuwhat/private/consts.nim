@@ -1,3 +1,5 @@
+import std / sequtils
+
 const
   X86*     = defined(i386) or defined(amd64)
   ARM*     = defined(arm)  or defined(arm64)

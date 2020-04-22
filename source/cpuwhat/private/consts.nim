@@ -1,4 +1,6 @@
-import std / sequtils
+import
+  std / sequtils,
+  std / strutils
 
 const
   X86*     = defined(i386) or defined(amd64)

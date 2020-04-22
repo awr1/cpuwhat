@@ -7,8 +7,9 @@ import
   std / sequtils
 
 when GCCLike:
-  {.passC: "-msse".}
-  {.passL: "-msse".}
+  const GCCFlags = "-msse"
+  {.passC: GCCFlags.}
+  {.passL: GCCFlags.}
 
 static:
   cAddStdDir()

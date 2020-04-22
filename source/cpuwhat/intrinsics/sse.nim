@@ -47,5 +47,5 @@ cPlugin:
     sym.name = sym.name.strip(chars = {'_'})
 
 cImport(cSearchPath("mmintrin.h"),  flags = ToastFlags)
-cImport(cSearchPath("mm_alloc.h"),  flags = ToastFlags)
+cImport(cSearchPath("mm_malloc.h"), flags = ToastFlags)
 cImport(cSearchPath("xmmintrin.h"), flags = ToastFlags)

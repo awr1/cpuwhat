@@ -7,7 +7,7 @@ import
   std / sequtils
 
 when GCCLike:
-  const GCCFlags = "-msse"
+  const GCCFlags = "-msse2"
   {.passC: GCCFlags.}
   {.passL: GCCFlags.}
 

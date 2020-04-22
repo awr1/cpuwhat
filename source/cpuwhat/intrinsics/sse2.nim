@@ -16,31 +16,31 @@ static:
 
 cOverride:
   type
-    m64*     {.importc: "__$1", header: "<xmmintrin.h>".} = object
-    m64_u*   {.importc: "__$1", header: "<xmmintrin.h>".} = object
-    m128*    {.importc: "__$1", header: "<xmmintrin.h>".} = object
-    m128_u*  {.importc: "__$1", header: "<xmmintrin.h>".} = object
-    m128i*   {.importc: "__$1", header: "<xmmintrin.h>".} = object
-    m128i_u* {.importc: "__$1", header: "<xmmintrin.h>".} = object
-    m128d*   {.importc: "__$1", header: "<xmmintrin.h>".} = object
-    m128d_u* {.importc: "__$1", header: "<xmmintrin.h>".} = object
-    v2si     {.importc: "__$1", header: "<xmmintrin.h>".} = object
-    v4hi     {.importc: "__$1", header: "<xmmintrin.h>".} = object
-    v8qi     {.importc: "__$1", header: "<xmmintrin.h>".} = object
-    v1di     {.importc: "__$1", header: "<xmmintrin.h>".} = object
-    v2sf     {.importc: "__$1", header: "<xmmintrin.h>".} = object
-    v4sf     {.importc: "__$1", header: "<xmmintrin.h>".} = object
-    v4sf     {.importc: "__$1", header: "<xmmintrin.h>".} = object
-    v2df     {.importc: "__$1", header: "<xmmintrin.h>".} = object
-    v2di     {.importc: "__$1", header: "<xmmintrin.h>".} = object
-    v2du     {.importc: "__$1", header: "<xmmintrin.h>".} = object
-    v4si     {.importc: "__$1", header: "<xmmintrin.h>".} = object
-    v4su     {.importc: "__$1", header: "<xmmintrin.h>".} = object
-    v8hi     {.importc: "__$1", header: "<xmmintrin.h>".} = object
-    v8hu     {.importc: "__$1", header: "<xmmintrin.h>".} = object
-    v16qi    {.importc: "__$1", header: "<xmmintrin.h>".} = object
-    v16qu    {.importc: "__$1", header: "<xmmintrin.h>".} = object
-    v16qs    {.importc: "__$1", header: "<xmmintrin.h>".} = object
+    m64*     {.importc: "__$1", header: "<emmintrin.h>".} = object
+    m64_u*   {.importc: "__$1", header: "<emmintrin.h>".} = object
+    m128*    {.importc: "__$1", header: "<emmintrin.h>".} = object
+    m128_u*  {.importc: "__$1", header: "<emmintrin.h>".} = object
+    m128i*   {.importc: "__$1", header: "<emmintrin.h>".} = object
+    m128i_u* {.importc: "__$1", header: "<emmintrin.h>".} = object
+    m128d*   {.importc: "__$1", header: "<emmintrin.h>".} = object
+    m128d_u* {.importc: "__$1", header: "<emmintrin.h>".} = object
+    v2si     {.importc: "__$1", header: "<emmintrin.h>".} = object
+    v4hi     {.importc: "__$1", header: "<emmintrin.h>".} = object
+    v8qi     {.importc: "__$1", header: "<emmintrin.h>".} = object
+    v1di     {.importc: "__$1", header: "<emmintrin.h>".} = object
+    v2sf     {.importc: "__$1", header: "<emmintrin.h>".} = object
+    v4sf     {.importc: "__$1", header: "<emmintrin.h>".} = object
+    v4sf     {.importc: "__$1", header: "<emmintrin.h>".} = object
+    v2df     {.importc: "__$1", header: "<emmintrin.h>".} = object
+    v2di     {.importc: "__$1", header: "<emmintrin.h>".} = object
+    v2du     {.importc: "__$1", header: "<emmintrin.h>".} = object
+    v4si     {.importc: "__$1", header: "<emmintrin.h>".} = object
+    v4su     {.importc: "__$1", header: "<emmintrin.h>".} = object
+    v8hi     {.importc: "__$1", header: "<emmintrin.h>".} = object
+    v8hu     {.importc: "__$1", header: "<emmintrin.h>".} = object
+    v16qi    {.importc: "__$1", header: "<emmintrin.h>".} = object
+    v16qu    {.importc: "__$1", header: "<emmintrin.h>".} = object
+    v16qs    {.importc: "__$1", header: "<emmintrin.h>".} = object
 
 cPlugin:
   import std / strutils

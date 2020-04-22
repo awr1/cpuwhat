@@ -15,7 +15,7 @@ include:
 - [ ] Querying CPU Vendor + Microarchitecture
 - [ ] Querying CPU Cache Topology
 - [X] Testing Presence of CPU Instruction Set Extensions
-- [ ] SIMD Intrinsics
+- [X] SIMD Intrinsics (partial support)
 
 ### Query Example
 
@@ -26,6 +26,15 @@ echo(cpuName())
 echo("has SSE2:     ", hasSSE2())
 echo("has AVX512BW: ", hasAVX512BW())
 ```
+
+## Intrinsics Example
+
+```nim
+import cpuwhat / intrinsics / sse
+
+let zero = mm_setzero_ps()
+```
+
 ### License
 
 Uses the Internet Systems Consortium (ISC) open-source license.

@@ -15,7 +15,7 @@ include:
 - [ ] Querying CPU Vendor + Microarchitecture
 - [ ] Querying CPU Cache Topology
 - [X] Testing Presence of CPU Instruction Set Extensions
-- [X] SIMD Intrinsics (partial support)
+- [X] (WIP) Compiler Intrinsics (currently supporting MMX, SSE 1-3)
 
 ### Query Example
 

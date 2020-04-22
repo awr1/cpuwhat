@@ -2,42 +2,44 @@ import
   cpuwhat / private / consts,
   nimterop / build,
   nimterop / cimport,
-  std / os
+  std / os,
+  std / strutils,
+  std / sequtils
 
 when GCCLike:
   {.passC: "-msse".}
+  {.passL: "-msse".}
 
 static:
   cAddStdDir()
-  when Unix:
-    cDefine("__attribute__\\(x\\)", " ")
-  else:
-    cDefine("__attribute__(x)", " ")
-  cDefine("__inline", " ")
 
 cOverride:
   type
-    m64*   {.importc: "__$1", header: "mmintrin.h".} = object
-    v2si*  {.importc: "__$1", header: "mmintrin.h".} = object
-    v4hi*  {.importc: "__$1", header: "mmintrin.h".} = object
-    v8qi*  {.importc: "__$1", header: "mmintrin.h".} = object
-    v1di*  {.importc: "__$1", header: "mmintrin.h".} = object
-    v2sf*  {.importc: "__$1", header: "mmintrin.h".} = object
-
-    m128*  {.importc: "__$1", header: "xmmintrin.h".} = object
-    m128i* {.importc: "__$1", header: "xmmintrin.h".} = object
-    m128d* {.importc: "__$1", header: "xmmintrin.h".} = object
-    v4sf*  {.importc: "__$1", header: "xmmintrin.h".} = object
-    v4sf*  {.importc: "__$1", header: "xmmintrin.h".} = object
-    v2df*  {.importc: "__$1", header: "xmmintrin.h".} = object
-    v2di*  {.importc: "__$1", header: "xmmintrin.h".} = object
-    v2du*  {.importc: "__$1", header: "xmmintrin.h".} = object
-    v4si*  {.importc: "__$1", header: "xmmintrin.h".} = object
-    v4su*  {.importc: "__$1", header: "xmmintrin.h".} = object
-    v8hi*  {.importc: "__$1", header: "xmmintrin.h".} = object
-    v8hu*  {.importc: "__$1", header: "xmmintrin.h".} = object
-    v16qi* {.importc: "__$1", header: "xmmintrin.h".} = object
-    v16qu* {.importc: "__$1", header: "xmmintrin.h".} = object
+    m64*     {.importc: "__$1", header: "<xmmintrin.h>".} = object
+    m64_u*   {.importc: "__$1", header: "<xmmintrin.h>".} = object
+    m128*    {.importc: "__$1", header: "<xmmintrin.h>".} = object
+    m128_u*  {.importc: "__$1", header: "<xmmintrin.h>".} = object
+    m128i*   {.importc: "__$1", header: "<xmmintrin.h>".} = object
+    m128i_u* {.importc: "__$1", header: "<xmmintrin.h>".} = object
+    m128d*   {.importc: "__$1", header: "<xmmintrin.h>".} = object
+    m128d_u* {.importc: "__$1", header: "<xmmintrin.h>".} = object
+    v2si     {.importc: "__$1", header: "<xmmintrin.h>".} = object
+    v4hi     {.importc: "__$1", header: "<xmmintrin.h>".} = object
+    v8qi     {.importc: "__$1", header: "<xmmintrin.h>".} = object
+    v1di     {.importc: "__$1", header: "<xmmintrin.h>".} = object
+    v2sf     {.importc: "__$1", header: "<xmmintrin.h>".} = object
+    v4sf     {.importc: "__$1", header: "<xmmintrin.h>".} = object
+    v4sf     {.importc: "__$1", header: "<xmmintrin.h>".} = object
+    v2df     {.importc: "__$1", header: "<xmmintrin.h>".} = object
+    v2di     {.importc: "__$1", header: "<xmmintrin.h>".} = object
+    v2du     {.importc: "__$1", header: "<xmmintrin.h>".} = object
+    v4si     {.importc: "__$1", header: "<xmmintrin.h>".} = object
+    v4su     {.importc: "__$1", header: "<xmmintrin.h>".} = object
+    v8hi     {.importc: "__$1", header: "<xmmintrin.h>".} = object
+    v8hu     {.importc: "__$1", header: "<xmmintrin.h>".} = object
+    v16qi    {.importc: "__$1", header: "<xmmintrin.h>".} = object
+    v16qu    {.importc: "__$1", header: "<xmmintrin.h>".} = object
+    v16qs    {.importc: "__$1", header: "<xmmintrin.h>".} = object
 
 cPlugin:
   import std / strutils
@@ -45,6 +47,13 @@ cPlugin:
   proc onSymbol*(sym :var Symbol) {.exportc, dynlib.} =
     sym.name = sym.name.strip(chars = {'_'})
 
-const Flags = "-f:ast2 -H"
-cImport(cSearchPath("mmintrin.h"),  flags = Flags)
-cImport(cSearchPath("xmmintrin.h"), flags = Flags)
+# Defines are passed to `toast` - and `toast` only! cDefine() passes an
+# undesirable `-D` flag to the C compiler...
+
+const
+  Defines       = ["__inline", "__attribute__(x)", "__extension__"]
+  Flags         = "-f:ast2 -H " & Defines.mapIt("-D " & it & "= ").join
+  FlagsAdjusted = when Unix: Flags.multiReplace(("(", "\\("), (")"), "\\)")
+                  else:      Flags
+
+cImport(cSearchPath("xmmintrin.h"), recurse = true, flags = FlagsAdjusted)

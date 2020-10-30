@@ -9,5 +9,6 @@ proc cpuName*() :string =
   ##
   ## **NOTE:** If a CPU's name is somehow not retrievable, the value will just
   ## be the empty string.
-  when X86: cpuNameX86()
-  else:     ""
+  var cachedResult {.global.} = when X86: cpuNameX86()
+                                else:     ""
+  cachedResult

@@ -1,3 +1,5 @@
+import std / strutils
+
 proc cpuidX86(eaxi, ecxi :int32) :tuple[eax, ebx, ecx, edx :int32] =
   when defined(vcc):
     # limited inline asm support in vcc, so intrinsics, here we go:
@@ -13,11 +15,12 @@ proc cpuidX86(eaxi, ecxi :int32) :tuple[eax, ebx, ecx, edx :int32] =
     (eaxr, ebxr, ecxr, edxr)
 
 proc cpuNameX86() :string =
-  var leaves {.global.} = cast[array[48, char]]([
+  var leaves = cast[array[48, char]]([
     cpuidX86(eaxi = 0x80000002'i32, ecxi = 0),
     cpuidX86(eaxi = 0x80000003'i32, ecxi = 0),
     cpuidX86(eaxi = 0x80000004'i32, ecxi = 0)])
   result = $cast[cstring](addr leaves[0])
+  result.removeSuffix({'\x01', ' '})
 
 type
   X86Feature {.pure.} = enum

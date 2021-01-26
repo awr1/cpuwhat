@@ -1,4 +1,5 @@
-import cpuwhat / private / consts
+import  cpuwhat / private / consts
+include cpuwhat / private / vendors
 
 when X86 or defined(nimdoc):
   include cpuwhat / private / info_x86

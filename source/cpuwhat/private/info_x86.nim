@@ -1,9 +1,14 @@
-import std / strutils
+import
+  std / strutils,
+  std / threads,
+  std / cpuinfo,
+  std / sequtils,
+  std / bitops
 
 proc cpuidX86(eaxi, ecxi :int32) :tuple[eax, ebx, ecx, edx :int32] =
   when defined(vcc):
     # limited inline asm support in vcc, so intrinsics, here we go:
-    proc cpuidVcc(cpuInfo :ptr int32; functionID, subFunctionId: int32)
+    proc cpuidVcc(cpuInfo :ptr int32; functionID, subFunctionId :int32)
       {.cdecl, importc: "__cpuidex", header: "intrin.h".}
     cpuidVcc(addr result.eax, eaxi, ecxi)
   else:
@@ -35,272 +40,190 @@ type
     CLFLUSHOPT, CLWB, PrefetchWT1, MPX
 
 let
-  leaf1 = cpuidX86(eaxi = 1, ecxi = 0)
-  leaf7 = cpuidX86(eaxi = 7, ecxi = 0)
-  leaf8 = cpuidX86(eaxi = 0x80000001'i32, ecxi = 0)
+  cpuCount {.global.} = countProcessors()
+  features {.global.} = block:
+    func gatherFeatures(supported :var set[X86Feature]) =
+      let
+        leaf1 = cpuidX86(eaxi = 1, ecxi = 0)
+        leaf7 = cpuidX86(eaxi = 7, ecxi = 0)
+        leaf8 = cpuidX86(eaxi = 0x80000001'i32, ecxi = 0)
 
-# The reason why we don't just evaluate these directly in the `let` variable
-# list is so that we can internally organize features by their input (leaf)
-# and output registers.
-proc testX86Feature(feature :X86Feature) :bool =
-  proc test(input, bit :int) :bool =
-    ((1 shl bit) and input) != 0
+      # see: https://en.wikipedia.org/wiki/CPUID#Calling_CPUID
+      # see: Intel® Architecture Instruction Set Extensions and Future Features
+      #      Programming Reference
+      for feature in X86Feature:
+        func test(input, bit :int) :bool = ((1 shl bit) and input) != 0
+        let validity = case feature
+          # Leaf 1, EDX
+          of X87FPU:             leaf1.edx.test(0)
+          of CLFLUSH:            leaf1.edx.test(19)
+          of MMX:                leaf1.edx.test(23)
+          of SSE:                leaf1.edx.test(25)
+          of SSE2:               leaf1.edx.test(26)
+          of Hyperthreading:     leaf1.edx.test(28)
 
-  # see: https://en.wikipedia.org/wiki/CPUID#Calling_CPUID
-  # see: Intel® Architecture Instruction Set Extensions and Future Features
-  #      Programming Reference
-  result = case feature
-    # leaf 1, edx
-    of X87FPU:
-      leaf1.edx.test(0)
-    of CLFLUSH:
-      leaf1.edx.test(19)
-    of MMX:
-      leaf1.edx.test(23)
-    of SSE:
-      leaf1.edx.test(25)
-    of SSE2:
-      leaf1.edx.test(26)
-    of Hyperthreading:
-      leaf1.edx.test(28)
+          # Leaf 1, ECX
+          of SSE3:               leaf1.ecx.test(0)
+          of PCLMULQDQ:          leaf1.ecx.test(1)
+          of IntelVTX:           leaf1.ecx.test(5)
+          of SSSE3:              leaf1.ecx.test(9)
+          of FMA3:               leaf1.ecx.test(12)
+          of CAS16B:             leaf1.ecx.test(13)
+          of SSE41:              leaf1.ecx.test(19)
+          of SSE42:              leaf1.ecx.test(20)
+          of MOVBigEndian:       leaf1.ecx.test(22)
+          of POPCNT:             leaf1.ecx.test(23)
+          of AES:                leaf1.ecx.test(25)
+          of AVX:                leaf1.ecx.test(28)
+          of Float16c:           leaf1.ecx.test(29)
+          of RDRAND:             leaf1.ecx.test(30)
+          of HypervisorPresence: leaf1.ecx.test(31)
 
-    # leaf 1, ecx
-    of SSE3:
-      leaf1.ecx.test(0)
-    of PCLMULQDQ:
-      leaf1.ecx.test(1)
-    of IntelVTX:
-      leaf1.ecx.test(5)
-    of SSSE3:
-      leaf1.ecx.test(9)
-    of FMA3:
-      leaf1.ecx.test(12)
-    of CAS16B:
-      leaf1.ecx.test(13)
-    of SSE41:
-      leaf1.ecx.test(19)
-    of SSE42:
-      leaf1.ecx.test(20)
-    of MOVBigEndian:
-      leaf1.ecx.test(22)
-    of POPCNT:
-      leaf1.ecx.test(23)
-    of AES:
-      leaf1.ecx.test(25)
-    of AVX:
-      leaf1.ecx.test(28)
-    of Float16c:
-      leaf1.ecx.test(29)
-    of RDRAND:
-      leaf1.ecx.test(30)
-    of HypervisorPresence:
-      leaf1.ecx.test(31)
+          # Leaf 7, ECX
+          of PrefetchWT1:        leaf7.ecx.test(0)
+          of AVX512VBMI:         leaf7.ecx.test(1)
+          of AVX512VBMI2:        leaf7.ecx.test(6)
+          of GFNI:               leaf7.ecx.test(8)
+          of VAES:               leaf7.ecx.test(9)
+          of VPCLMULQDQ:         leaf7.ecx.test(10)
+          of AVX512VNNI:         leaf7.ecx.test(11)
+          of AVX512BITALG:       leaf7.ecx.test(12)
+          of AVX512VPOPCNTDQ:    leaf7.ecx.test(14)
 
-    # leaf 7, ecx
-    of PrefetchWT1:
-      leaf7.ecx.test(0)
-    of AVX512VBMI:
-      leaf7.ecx.test(1)
-    of AVX512VBMI2:
-      leaf7.ecx.test(6)
-    of GFNI:
-      leaf7.ecx.test(8)
-    of VAES:
-      leaf7.ecx.test(9)
-    of VPCLMULQDQ:
-      leaf7.ecx.test(10)
-    of AVX512VNNI:
-      leaf7.ecx.test(11)
-    of AVX512BITALG:
-      leaf7.ecx.test(12)
-    of AVX512VPOPCNTDQ:
-      leaf7.ecx.test(14)
+          # Leaf 7, EAX
+          of AVX512BFLOAT16:     leaf7.eax.test(5)
 
-    # lead 7, eax
-    of AVX512BFLOAT16:
-      leaf7.eax.test(5)
+          # Leaf 7, EBX
+          of SGX:                leaf7.ebx.test(2)
+          of BMI1:               leaf7.ebx.test(3)
+          of TSXHLE:             leaf7.ebx.test(4)
+          of AVX2:               leaf7.ebx.test(5)
+          of BMI2:               leaf7.ebx.test(8)
+          of TSXRTM:             leaf7.ebx.test(11)
+          of MPX:                leaf7.ebx.test(14)
+          of AVX512F:            leaf7.ebx.test(16)
+          of AVX512DQ:           leaf7.ebx.test(17)
+          of RDSEED:             leaf7.ebx.test(18)
+          of ADX:                leaf7.ebx.test(19)
+          of AVX512IFMA:         leaf7.ebx.test(21)
+          of CLFLUSHOPT:         leaf7.ebx.test(23)
+          of CLWB:               leaf7.ebx.test(24)
+          of AVX512PF:           leaf7.ebx.test(26)
+          of AVX512ER:           leaf7.ebx.test(27)
+          of AVX512CD:           leaf7.ebx.test(28)
+          of SHA:                leaf7.ebx.test(29)
+          of AVX512BW:           leaf7.ebx.test(30)
+          of AVX512VL:           leaf7.ebx.test(31)
 
-    # leaf 7, ebx
-    of SGX:
-      leaf7.ebx.test(2)
-    of BMI1:
-      leaf7.ebx.test(3)
-    of TSXHLE:
-      leaf7.ebx.test(4)
-    of AVX2:
-      leaf7.ebx.test(5)
-    of BMI2:
-      leaf7.ebx.test(8)
-    of TSXRTM:
-      leaf7.ebx.test(11)
-    of MPX:
-      leaf7.ebx.test(14)
-    of AVX512F:
-      leaf7.ebx.test(16)
-    of AVX512DQ:
-      leaf7.ebx.test(17)
-    of RDSEED:
-      leaf7.ebx.test(18)
-    of ADX:
-      leaf7.ebx.test(19)
-    of AVX512IFMA:
-      leaf7.ebx.test(21)
-    of CLFLUSHOPT:
-      leaf7.ebx.test(23)
-    of CLWB:
-      leaf7.ebx.test(24)
-    of AVX512PF:
-      leaf7.ebx.test(26)
-    of AVX512ER:
-      leaf7.ebx.test(27)
-    of AVX512CD:
-      leaf7.ebx.test(28)
-    of SHA:
-      leaf7.ebx.test(29)
-    of AVX512BW:
-      leaf7.ebx.test(30)
-    of AVX512VL:
-      leaf7.ebx.test(31)
+          # Leaf 7, EDX
+          of AVX512VNNIW4:       leaf7.edx.test(2)
+          of AVX512FMAPS4:       leaf7.edx.test(3)
+          of AVX512VP2INTERSECT: leaf7.edx.test(8)
 
-    # leaf 7, edx
-    of AVX512VNNIW4:
-      leaf7.edx.test(2)
-    of AVX512FMAPS4:
-      leaf7.edx.test(3)
-    of AVX512VP2INTERSECT:
-      leaf7.edx.test(8)
+          # Leaf 8, EDX
+          of NoSMT:              leaf8.edx.test(1)
+          of CAS8B:              leaf8.edx.test(8)
+          of NXBit:              leaf8.edx.test(20)
+          of MMXExt:             leaf8.edx.test(22)
+          of F3DNowEnhanced:     leaf8.edx.test(30)
+          of F3DNow:             leaf8.edx.test(31)
 
-    # leaf 8, edx
-    of NoSMT:
-      leaf8.edx.test(1)
-    of CAS8B:
-      leaf8.edx.test(8)
-    of NXBit:
-      leaf8.edx.test(20)
-    of MMXExt:
-      leaf8.edx.test(22)
-    of F3DNowEnhanced:
-      leaf8.edx.test(30)
-    of F3DNow:
-      leaf8.edx.test(31)
+          # Leaf 8, ECX
+          of AMDV:               leaf8.ecx.test(2)
+          of ABM:                leaf8.ecx.test(5)
+          of SSE4a:              leaf8.ecx.test(6)
+          of Prefetch:           leaf8.ecx.test(8)
+          of XOP:                leaf8.ecx.test(11)
+          of FMA4:               leaf8.ecx.test(16)
+        if validity: supported.incl(feature)
 
-    # leaf 8, ecx
-    of AMDV:
-      leaf8.ecx.test(2)
-    of ABM:
-      leaf8.ecx.test(5)
-    of SSE4a:
-      leaf8.ecx.test(6)
-    of Prefetch:
-      leaf8.ecx.test(8)
-    of XOP:
-      leaf8.ecx.test(11)
-    of FMA4:
-      leaf8.ecx.test(16)
+    var
+      featureSets = newSeq[set[X86Feature]](cpuCount)
+      threads     = newSeq[Thread[var set[X86Feature]]](cpuCount)
+    for affinity, thread in threads.mpairs:
+      thread.pinToCPU(affinity)
+      thread.createThread(gatherFeatures, featureSets[affinity])
+    threads.joinThreads
 
-let
-  isHypervisorPresentImpl           = testX86Feature(HypervisorPresence)
-  hasSimultaneousMultithreadingImpl = testX86Feature(Hyperthreading) or
-                                      not testX86Feature(NoSMT)
-  hasIntelVTXImpl                   = testX86Feature(IntelVTX)
-  hasAMDVImpl                       = testX86Feature(AMDV)
-  hasX87FPUImpl                     = testX86Feature(X87FPU)
-  hasMMXImpl                        = testX86Feature(MMX)
-  hasMMXExtImpl                     = testX86Feature(MMXExt)
-  has3DNowImpl                      = testX86Feature(F3DNow)
-  has3DNowEnhancedImpl              = testX86Feature(F3DNowEnhanced)
-  hasPrefetchImpl                   = testX86Feature(Prefetch) or
-                                      testX86Feature(F3DNow)
-  hasSSEImpl                        = testX86Feature(SSE)
-  hasSSE2Impl                       = testX86Feature(SSE2)
-  hasSSE3Impl                       = testX86Feature(SSE3)
-  hasSSSE3Impl                      = testX86Feature(SSSE3)
-  hasSSE4aImpl                      = testX86Feature(SSE4a)
-  hasSSE41Impl                      = testX86Feature(SSE41)
-  hasSSE42Impl                      = testX86Feature(SSE42)
-  hasAVXImpl                        = testX86Feature(AVX)
-  hasAVX2Impl                       = testX86Feature(AVX2)
-  hasAVX512FImpl                    = testX86Feature(AVX512F)
-  hasAVX512DQImpl                   = testX86Feature(AVX512DQ)
-  hasAVX512IFMAImpl                 = testX86Feature(AVX512IFMA)
-  hasAVX512PFImpl                   = testX86Feature(AVX512PF)
-  hasAVX512ERImpl                   = testX86Feature(AVX512ER)
-  hasAVX512CDImpl                   = testX86Feature(AVX512DQ)
-  hasAVX512BWImpl                   = testX86Feature(AVX512BW)
-  hasAVX512VLImpl                   = testX86Feature(AVX512VL)
-  hasAVX512VBMIImpl                 = testX86Feature(AVX512VBMI)
-  hasAVX512VBMI2Impl                = testX86Feature(AVX512VBMI2)
-  hasAVX512VPOPCNTDQImpl            = testX86Feature(AVX512VPOPCNTDQ)
-  hasAVX512VNNIImpl                 = testX86Feature(AVX512VNNI)
-  hasAVX512VNNIW4Impl               = testX86Feature(AVX512VNNIW4)
-  hasAVX512FMAPS4Impl               = testX86Feature(AVX512FMAPS4)
-  hasAVX512BITALGImpl               = testX86Feature(AVX512BITALG)
-  hasAVX512BFLOAT16Impl             = testX86Feature(AVX512BFLOAT16)
-  hasAVX512VP2INTERSECTImpl         = testX86Feature(AVX512VP2INTERSECT)
-  hasRDRANDImpl                     = testX86Feature(RDRAND)
-  hasRDSEEDImpl                     = testX86Feature(RDSEED)
-  hasMOVBigEndianImpl               = testX86Feature(MOVBigEndian)
-  hasPOPCNTImpl                     = testX86Feature(POPCNT)
-  hasFMA3Impl                       = testX86Feature(FMA3)
-  hasFMA4Impl                       = testX86Feature(FMA4)
-  hasXOPImpl                        = testX86Feature(XOP)
-  hasCAS8BImpl                      = testX86Feature(CAS8B)
-  hasCAS16BImpl                     = testX86Feature(CAS16B)
-  hasABMImpl                        = testX86Feature(ABM)
-  hasBMI1Impl                       = testX86Feature(BMI1)
-  hasBMI2Impl                       = testX86Feature(BMI2)
-  hasTSXHLEImpl                     = testX86Feature(TSXHLE)
-  hasTSXRTMImpl                     = testX86Feature(TSXRTM)
-  hasADXImpl                        = testX86Feature(TSXHLE)
-  hasSGXImpl                        = testX86Feature(SGX)
-  hasGFNIImpl                       = testX86Feature(GFNI)
-  hasAESImpl                        = testX86Feature(AES)
-  hasVAESImpl                       = testX86Feature(VAES)
-  hasVPCLMULQDQImpl                 = testX86Feature(VPCLMULQDQ)
-  hasPCLMULQDQImpl                  = testX86Feature(PCLMULQDQ)
-  hasNXBitImpl                      = testX86Feature(NXBit)
-  hasFloat16cImpl                   = testX86Feature(Float16c)
-  hasSHAImpl                        = testX86Feature(SHA)
-  hasCLFLUSHImpl                    = testX86Feature(CLFLUSH)
-  hasCLFLUSHOPTImpl                 = testX86Feature(CLFLUSHOPT)
-  hasCLWBImpl                       = testX86Feature(CLWB)
-  hasPrefetchWT1Impl                = testX86Feature(PrefetchWT1)
-  hasMPXImpl                        = testX86Feature(MPX)
+    var featuresByAffinity :array[X86Feature, uint64]
+    for affinity, featureSet in featureSets:
+      for feature in featureSet:
+        featuresByAffinity[feature].setBit(affinity)
+    featuresByAffinity
 
-# NOTE: We use procedures here (layered over the variables) to keep the API
-# consistent and usable against possible future heterogenous systems with ISA
-# differences between cores (a possibility that has historical precedents, for
-# instance, the PPU/SPU relationship found on the IBM Cell). If future systems
-# do end up having disparate ISA features across multiple cores, expect there to
-# be a "cpuCore" argument added to the feature procs.
+template cached(expression :untyped) :bool =
+  let cache {.global.} = expression
+  expression
+
+proc hasCongruentISA*() :bool {.inline.} =
+  ## Reports `true` if the available instruction feature set is the same across
+  ## all cores. This does not necessarily mean the CPU cores are homogenous,
+  ## only that code should be relatively compatible regardless of the core it's
+  ## being executed on.
+  ##
+  ## Certain multi-core CPU packages are based on a heterogenous or "hybridized"
+  ## design where multiple cores in a system are based on differing hardware
+  ## designs to elicit different performance characteristics, e.g. CPUs of
+  ## ARM's "big.LITTLE" design concept that splits a CPU into power-efficient
+  ## and high-performance cores, the idea being that an OS will schedule threads
+  ## to the appropriate core types based on what the user currently is doing.
+  ##
+  ## Whilst big.LITTLE nominally guaranteed that both types of cores in a system
+  ## support the same instructions, newer takes on the big.LITTLE concept, for
+  ## example, Samsung's Exynos 9600 and Intel's Alder Lake, do not follow this
+  ## principle.
+  ##
+  ## If no relevant OS-level countermeasures exist, then user applications run
+  ## the risk of crashing via illegal opcode exceptions; in the best case
+  ## applications are forcibly repinned onto "known-good" cores that can
+  ## execute the instructions in question, leading to potential performance
+  ## issues as multiple threads of the same application compete with each other.
+  cached features.allIt(it == 0 or it.popcount == cpuCount)
 
 proc isHypervisorPresent*() :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if this application is running inside of a virtual machine
   ## (this is by no means foolproof).
-  isHypervisorPresentImpl
+  cached features[HypervisorPresence].testBit(0)
 
 proc hasSimultaneousMultithreading*() :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware is utilizing simultaneous multithreading
   ## (branded as *"hyperthreads"* on Intel processors).
-  hasSimultaneousMultithreadingImpl
+  cached (features[Hyperthreading] or not features[NoSMT]).testBit(0)
 
-proc hasIntelVTX*() :bool {.inline.} =
+template onThread(feature :X86Feature; affinity :uint) :bool =
+  when compileOption("rangeChecks"):
+    if affinity notin 0 ..< cpuCount:
+      IndexError.newException(
+        "Requested affinity greater than number of logical processors")
+  features[feature].testBit(affinity)
+
+proc hasIntelVTX*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the Intel virtualization extensions (VT-x) are available.
-  hasIntelVTXImpl
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
+  IntelVTX.onThread(affinity)
 
-proc hasAMDV*() :bool {.inline.} =
+proc hasAMDV*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the AMD virtualization extensions (AMD-V) are available.
-  hasAMDVImpl
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
+  AMDV.onThread(affinity)
 
-proc hasX87FPU*() :bool {.inline.} =
+proc hasX87FPU*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use x87 floating-point instructions
@@ -311,10 +234,15 @@ proc hasX87FPU*() :bool {.inline.} =
   ## `true` on 64-bit x86 processors. It should be noted that support of these
   ## instructions is deprecated on 64-bit versions of Windows - see MSDN_.
   ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
+  ##
   ## .. _MSDN: https://docs.microsoft.com/en-us/windows/win32/dxtecharts/sixty-four-bit-programming-for-game-developers#porting-applications-to-64-bit-platforms
-  hasX87FPUImpl
+  X87FPU.onThread(affinity)
 
-proc hasMMX*() :bool {.inline.} =
+proc hasMMX*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use MMX SIMD instructions.
@@ -324,10 +252,15 @@ proc hasMMX*() :bool {.inline.} =
   ## instructions is deprecated on 64-bit versions of Windows (see MSDN_ for
   ## more info).
   ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
+  ##
   ## .. _MSDN: https://docs.microsoft.com/en-us/windows/win32/dxtecharts/sixty-four-bit-programming-for-game-developers#porting-applications-to-64-bit-platforms
   hasMMXImpl
 
-proc hasMMXExt*() :bool {.inline.} =
+proc hasMMXExt*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use "Extended MMX" SIMD instructions.
@@ -335,10 +268,15 @@ proc hasMMXExt*() :bool {.inline.} =
   ## It should be noted that support of these instructions is deprecated on
   ## 64-bit versions of Windows (see MSDN_ for more info).
   ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
+  ##
   ## .. _MSDN: https://docs.microsoft.com/en-us/windows/win32/dxtecharts/sixty-four-bit-programming-for-game-developers#porting-applications-to-64-bit-platforms
   hasMMXExtImpl
 
-proc has3DNow*() :bool {.inline.} =
+proc has3DNow*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use 3DNow! SIMD instructions.
@@ -349,11 +287,16 @@ proc has3DNow*() :bool {.inline.} =
   ## `hasPrefetch` procedure) have been phased out of AMD processors since 2010
   ## (see `AMD Developer Central`_ for more info).
   ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
+  ##
   ## .. _MSDN: https://docs.microsoft.com/en-us/windows/win32/dxtecharts/sixty-four-bit-programming-for-game-developers#porting-applications-to-64-bit-platforms
   ## .. _`AMD Developer Central`: https://web.archive.org/web/20131109151245/http://developer.amd.com/community/blog/2010/08/18/3dnow-deprecated/
   has3DNowImpl
 
-proc has3DNowEnhanced*() :bool {.inline.} =
+proc has3DNowEnhanced*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use "Enhanced 3DNow!" SIMD instructions.
@@ -364,20 +307,30 @@ proc has3DNowEnhanced*() :bool {.inline.} =
   ## `hasPrefetch` procedure) have been phased out of AMD processors since 2010
   ## (see `AMD Developer Central`_ for more info).
   ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
+  ##
   ## .. _MSDN: https://docs.microsoft.com/en-us/windows/win32/dxtecharts/sixty-four-bit-programming-for-game-developers#porting-applications-to-64-bit-platforms
   ## .. _`AMD Developer Central`: https://web.archive.org/web/20131109151245/http://developer.amd.com/community/blog/2010/08/18/3dnow-deprecated/
   has3DNowEnhancedImpl
 
-proc hasPrefetch*() :bool {.inline.} =
+proc hasPrefetch*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use the `PREFETCH` and `PREFETCHW`
   ## instructions. These instructions originally included as part of 3DNow!, but
   ## potentially indepdendent from the rest of it due to changes in contemporary
   ## AMD processors (see above).
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasPrefetchImpl
 
-proc hasSSE*() :bool {.inline.} =
+proc hasSSE*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use the SSE (Streaming SIMD Extensions)
@@ -385,9 +338,14 @@ proc hasSSE*() :bool {.inline.} =
   ##
   ## By virtue of SSE2 enforced compliance on AMD64 CPUs, this should always be
   ## `true` on 64-bit x86 processors.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasSSEImpl
 
-proc hasSSE2*() :bool {.inline.} =
+proc hasSSE2*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use the SSE (Streaming SIMD Extensions)
@@ -395,225 +353,380 @@ proc hasSSE2*() :bool {.inline.} =
   ##
   ## By virtue of SSE2 enforced compliance on AMD64 CPUs, this should always be
   ## `true` on 64-bit x86 processors.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasSSE2Impl
 
-proc hasSSE3*() :bool {.inline.} =
+proc hasSSE3*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use SSE (Streaming SIMD Extensions) 3.0
   ## instructions.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasSSE3Impl
 
-proc hasSSSE3*() :bool {.inline.} =
+proc hasSSSE3*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use Supplemental SSE (Streaming SIMD
   ## Extensions) 3.0 instructions.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasSSSE3Impl
 
-proc hasSSE4a*() :bool {.inline.} =
+proc hasSSE4a*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use Supplemental SSE (Streaming SIMD
   ## Extensions) 4a instructions.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasSSE4aImpl
 
-proc hasSSE41*() :bool {.inline.} =
+proc hasSSE41*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use Supplemental SSE (Streaming SIMD
   ## Extensions) 4.1 instructions.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasSSE41Impl
 
-proc hasSSE42*() :bool {.inline.} =
+proc hasSSE42*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use Supplemental SSE (Streaming SIMD
   ## Extensions) 4.2 instructions.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasSSE42Impl
 
-proc hasAVX*() :bool {.inline.} =
+proc hasAVX*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
   ## 1.0 instructions, which introduced 256-bit SIMD on x86 machines along with
   ## addded reencoded versions of prior 128-bit SSE instructions into the more
   ## code-dense and non-backward compatible VEX (Vector Extensions) format.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasAVXImpl
 
-proc hasAVX2*() :bool {.inline.} =
+proc hasAVX2*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions) 2.0
   ## instructions.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasAVX2Impl
 
-proc hasAVX512F*() :bool {.inline.} =
+proc hasAVX512F*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
   ## 512-bit F (Foundation) instructions.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasAVX512FImpl
 
-proc hasAVX512DQ*() :bool {.inline.} =
+proc hasAVX512DQ*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
   ## 512-bit DQ (Doubleword + Quadword) instructions.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasAVX512DQImpl
 
-proc hasAVX512IFMA*() :bool {.inline.} =
+proc hasAVX512IFMA*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
   ## 512-bit IFMA (Integer Fused Multiply Accumulation) instructions.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasAVX512IFMAImpl
 
-proc hasAVX512PF*() :bool {.inline.} =
+proc hasAVX512PF*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
   ## 512-bit PF (Prefetch) instructions.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasAVX512PFImpl
 
-proc hasAVX512ER*() :bool {.inline.} =
+proc hasAVX512ER*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
   ## 512-bit ER (Exponential and Reciprocal) instructions.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasAVX512ERImpl
 
-proc hasAVX512CD*() :bool {.inline.} =
+proc hasAVX512CD*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
   ## 512-bit CD (Conflict Detection) instructions.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasAVX512CDImpl
 
-proc hasAVX512BW*() :bool {.inline.} =
+proc hasAVX512BW*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
   ## 512-bit BW (Byte and Word) instructions.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasAVX512BWImpl
 
-proc hasAVX512VL*() :bool {.inline.} =
+proc hasAVX512VL*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
   ## 512-bit VL (Vector Length) instructions.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasAVX512VLImpl
 
-proc hasAVX512VBMI*() :bool {.inline.} =
+proc hasAVX512VBMI*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
   ## 512-bit VBMI (Vector Byte Manipulation) 1.0 instructions.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasAVX512VBMIImpl
 
-proc hasAVX512VBMI2*() :bool {.inline.} =
+proc hasAVX512VBMI2*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
   ## 512-bit VBMI (Vector Byte Manipulation) 2.0 instructions.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasAVX512VBMI2Impl
 
-proc hasAVX512VPOPCNTDQ*() :bool {.inline.} =
+proc hasAVX512VPOPCNTDQ*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use the AVX (Advanced Vector Extensions)
   ## 512-bit `VPOPCNTDQ` (population count, i.e. determine number of flipped
   ## bits) instruction.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasAVX512VPOPCNTDQImpl
 
-proc hasAVX512VNNI*() :bool {.inline.} =
+proc hasAVX512VNNI*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
   ## 512-bit VNNI (Vector Neural Network) instructions.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasAVX512VNNIImpl
 
-proc hasAVX512VNNIW4*() :bool {.inline.} =
+proc hasAVX512VNNIW4*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
   ## 512-bit 4VNNIW (Vector Neural Network Word Variable Percision)
   ## instructions.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasAVX512VNNIW4Impl
 
-proc hasAVX512FMAPS4*() :bool {.inline.} =
+proc hasAVX512FMAPS4*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
   ## 512-bit 4FMAPS (Fused-Multiply-Accumulation Single-percision) instructions.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasAVX512FMAPS4Impl
 
-proc hasAVX512BITALG*() :bool {.inline.} =
+proc hasAVX512BITALG*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
   ## 512-bit BITALG (Bit Algorithms) instructions.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasAVX512BITALGImpl
 
-proc hasAVX512BFLOAT16*() :bool {.inline.} =
+proc hasAVX512BFLOAT16*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
   ## 512-bit BFLOAT16 (8-bit exponent, 7-bit mantissa) instructions used by
   ## Intel DL (Deep Learning) Boost.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasAVX512BFLOAT16Impl
 
-proc hasAVX512VP2INTERSECT*() :bool {.inline.} =
+proc hasAVX512VP2INTERSECT*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
   ## 512-bit VP2INTERSECT (Compute Intersections between Dualwords + Quadwords)
   ## instructions.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasAVX512VP2INTERSECTImpl
 
-proc hasRDRAND*() :bool {.inline.} =
+proc hasRDRAND*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the `RDRAND` instruction,
   ## i.e. Intel on-CPU hardware random number generation.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasRDRANDImpl
 
-proc hasRDSEED*() :bool {.inline.} =
+proc hasRDSEED*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the `RDSEED` instruction,
   ## i.e. Intel on-CPU hardware random number generation (used for seeding other
   ## PRNGs).
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasRDSEEDImpl
 
-proc hasMOVBigEndian*() :bool {.inline.} =
+proc hasMOVBigEndian*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the `MOVBE` instruction for
   ## endianness/byte-order switching.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasMOVBigEndianImpl
 
-proc hasPOPCNT*() :bool {.inline.} =
+proc hasPOPCNT*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the `POPCNT` (population
   ## count, i.e. determine number of flipped bits) instruction.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasPOPCNTImpl
 
-proc hasFMA3*() :bool {.inline.} =
+proc hasFMA3*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the FMA3 (Fused Multiply
   ## Accumulation 3-operand) SIMD instructions.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasFMA3Impl
 
-proc hasFMA4*() :bool {.inline.} =
+proc hasFMA4*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the FMA4 (Fused Multiply
   ## Accumulation 4-operand) SIMD instructions.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasFMA4Impl
 
-proc hasXOP*() :bool {.inline.} =
+proc hasXOP*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the XOP (eXtended
@@ -621,161 +734,276 @@ proc hasXOP*() :bool {.inline.} =
   ## Bulldozer AMD microarchitecture family (i.e. Bulldozer, Piledriver,
   ## Steamroller, and Excavator) and were phased out with the release of the Zen
   ## design.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasXOPImpl
 
-proc hasCAS8B*() :bool {.inline.} =
+proc hasCAS8B*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the (`LOCK`-able)
   ## `CMPXCHG8B` 64-bit compare-and-swap instruction.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasCAS8BImpl
 
-proc hasCAS16B*() :bool {.inline.} =
+proc hasCAS16B*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the (`LOCK`-able)
   ## `CMPXCHG16B` 128-bit compare-and-swap instruction.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasCAS16BImpl
 
-proc hasABM*() :bool {.inline.} =
+proc hasABM*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for ABM (Advanced Bit
   ## Manipulation) insturctions (i.e. `POPCNT` and `LZCNT` for counting leading
   ## zeroes).
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasABMImpl
 
-proc hasBMI1*() :bool {.inline.} =
+proc hasBMI1*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for BMI (Bit Manipulation) 1.0
   ## instructions.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasBMI1Impl
 
-proc hasBMI2*() :bool {.inline.} =
+proc hasBMI2*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for BMI (Bit Manipulation) 2.0
   ## instructions.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasBMI2Impl
 
-proc hasTSXHLE*() :bool {.inline.} =
+proc hasTSXHLE*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for HLE (Hardware Lock Elision)
   ## as part of Intel's TSX (Transactional Synchronization Extensions).
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasTSXHLEImpl
 
-proc hasTSXRTM*() :bool {.inline.} =
+proc hasTSXRTM*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for RTM (Restricted
   ## Transactional Memory) as part of Intel's TSX (Transactional Synchronization
   ## Extensions).
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasTSXRTMImpl
 
-proc hasADX*() :bool {.inline.} =
+proc hasADX*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for ADX (Multi-percision
   ## Add-Carry Extensions) insructions.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasADXImpl
 
-proc hasSGX*() :bool {.inline.} =
+proc hasSGX*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for SGX (Software Guard
   ## eXtensions) memory encryption technology.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasSGXImpl
 
-proc hasGFNI*() :bool {.inline.} =
+proc hasGFNI*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for GFNI (Galois Field Affine
   ## Transformation) instructions.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasGFNIImpl
 
-proc hasAES*() :bool {.inline.} =
+proc hasAES*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for AESNI (Advanced Encryption
   ## Standard) instructions.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasAESImpl
 
-proc hasVAES*() :bool {.inline.} =
+proc hasVAES*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for VAES (Vectorized Advanced
   ## Encryption Standard) instructions.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasVAESImpl
 
-proc hasVPCLMULQDQ*() :bool {.inline.} =
+proc hasVPCLMULQDQ*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for `VCLMULQDQ` (512 and 256-bit
   ## Carryless Multiplication) instructions.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasVPCLMULQDQImpl
 
-proc hasPCLMULQDQ*() :bool {.inline.} =
+proc hasPCLMULQDQ*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for `PCLMULQDQ` (128-bit
   ## Carryless Multiplication) instructions.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasPCLMULQDQImpl
 
-proc hasNXBit*() :bool {.inline.} =
+proc hasNXBit*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for NX-bit (No-eXecute)
   ## technology for marking pages of memory as non-executable.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasNXBitImpl
 
-proc hasFloat16c*() :bool {.inline.} =
+proc hasFloat16c*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for F16C instructions, used for
   ## converting 16-bit "half-percision" floating-point values to and from
   ## single-percision floating-point values.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasFloat16cImpl
 
-proc hasSHA*() :bool {.inline.} =
+proc hasSHA*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for SHA (Secure Hash Algorithm)
   ## instructions.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasSHAImpl
 
-proc hasCLFLUSH*() :bool {.inline.} =
+proc hasCLFLUSH*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the `CLFLUSH` (Cache-line
   ## Flush) instruction.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasCLFLUSHImpl
 
-proc hasCLFLUSHOPT*() :bool {.inline.} =
+proc hasCLFLUSHOPT*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the `CLFLUSHOPT` (Cache-line
   ## Flush Optimized) instruction.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasCLFLUSHOPTImpl
 
-proc hasCLWB*() :bool {.inline.} =
+proc hasCLWB*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the `CLWB` (Cache-line Write
   ## Back) instruction.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasCLWBImpl
 
-proc hasPrefetchWT1*() :bool {.inline.} =
+proc hasPrefetchWT1*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the `PREFECTHWT1`
   ## instruction.
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasPrefetchWT1Impl
 
-proc hasMPX*() :bool {.inline.} =
+proc hasMPX*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for MPX (Memory Protection
   ## eXtensions).
+  ##
+  ## `affinity` specifies thread affinity as exposed by the OS, including SMT
+  ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
+  ## ISA feature set incongurence across heterogenous cores; see the
+  ## `hasCongruentISA` procedure for more.)
   hasMPXImpl

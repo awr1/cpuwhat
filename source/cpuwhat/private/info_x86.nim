@@ -210,7 +210,7 @@ template onThread(feature :X86Feature; affinity :uint) :bool =
         "Requested affinity greater than number of logical processors")
   features[feature].testBit(affinity)
 
-proc hasIntelVTX*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasIntelVTX*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the Intel virtualization extensions (VT-x) are available.
@@ -221,7 +221,7 @@ proc hasIntelVTX*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   IntelVTX.onThread(affinity)
 
-proc hasAMDV*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasAMDV*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the AMD virtualization extensions (AMD-V) are available.
@@ -232,7 +232,7 @@ proc hasAMDV*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   AMDV.onThread(affinity)
 
-proc hasX87FPU*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasX87FPU*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use x87 floating-point instructions
@@ -251,7 +251,7 @@ proc hasX87FPU*(affinity = currentaffinity()) :bool {.inline.} =
   ## .. _MSDN: https://docs.microsoft.com/en-us/windows/win32/dxtecharts/sixty-four-bit-programming-for-game-developers#porting-applications-to-64-bit-platforms
   X87FPU.onThread(affinity)
 
-proc hasMMX*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasMMX*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use MMX SIMD instructions.
@@ -269,7 +269,7 @@ proc hasMMX*(affinity = currentaffinity()) :bool {.inline.} =
   ## .. _MSDN: https://docs.microsoft.com/en-us/windows/win32/dxtecharts/sixty-four-bit-programming-for-game-developers#porting-applications-to-64-bit-platforms
   MMX.onThread(affinity)
 
-proc hasMMXExt*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasMMXExt*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use "Extended MMX" SIMD instructions.
@@ -285,7 +285,7 @@ proc hasMMXExt*(affinity = currentaffinity()) :bool {.inline.} =
   ## .. _MSDN: https://docs.microsoft.com/en-us/windows/win32/dxtecharts/sixty-four-bit-programming-for-game-developers#porting-applications-to-64-bit-platforms
   MMXExt.onThread(affinity)
 
-proc has3DNow*(affinity = currentaffinity()) :bool {.inline.} =
+proc has3DNow*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use 3DNow! SIMD instructions.
@@ -305,7 +305,7 @@ proc has3DNow*(affinity = currentaffinity()) :bool {.inline.} =
   ## .. _`AMD Developer Central`: https://web.archive.org/web/20131109151245/http://developer.amd.com/community/blog/2010/08/18/3dnow-deprecated/
   3DNow.onThread(affinity)
 
-proc has3DNowEnhanced*(affinity = currentaffinity()) :bool {.inline.} =
+proc has3DNowEnhanced*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use "Enhanced 3DNow!" SIMD instructions.
@@ -325,7 +325,7 @@ proc has3DNowEnhanced*(affinity = currentaffinity()) :bool {.inline.} =
   ## .. _`AMD Developer Central`: https://web.archive.org/web/20131109151245/http://developer.amd.com/community/blog/2010/08/18/3dnow-deprecated/
   3DNowEnhanced.onThread(affinity)
 
-proc hasPrefetch*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasPrefetch*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use the `PREFETCH` and `PREFETCHW`
@@ -339,7 +339,7 @@ proc hasPrefetch*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   Prefetch.onThread(affinity)
 
-proc hasSSE*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasSSE*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use the SSE (Streaming SIMD Extensions)
@@ -354,7 +354,7 @@ proc hasSSE*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   SSE.onThread(affinity)
 
-proc hasSSE2*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasSSE2*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use the SSE (Streaming SIMD Extensions)
@@ -369,7 +369,7 @@ proc hasSSE2*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   SSE2.onThread(affinity)
 
-proc hasSSE3*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasSSE3*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use SSE (Streaming SIMD Extensions) 3.0
@@ -381,7 +381,7 @@ proc hasSSE3*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   SSE3.onThread(affinity)
 
-proc hasSSSE3*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasSSSE3*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use Supplemental SSE (Streaming SIMD
@@ -393,7 +393,7 @@ proc hasSSSE3*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   SSSE3.onThread(affinity)
 
-proc hasSSE4a*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasSSE4a*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use Supplemental SSE (Streaming SIMD
@@ -405,7 +405,7 @@ proc hasSSE4a*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   SSE4a.onThread(affinity)
 
-proc hasSSE41*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasSSE41*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use Supplemental SSE (Streaming SIMD
@@ -417,7 +417,7 @@ proc hasSSE41*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   SSE41.onThread(affinity)
 
-proc hasSSE42*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasSSE42*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use Supplemental SSE (Streaming SIMD
@@ -429,7 +429,7 @@ proc hasSSE42*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   SSE42.onThread(affinity)
 
-proc hasAVX*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasAVX*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
@@ -443,7 +443,7 @@ proc hasAVX*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   AVX.onThread(affinity)
 
-proc hasAVX2*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasAVX2*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions) 2.0
@@ -455,7 +455,7 @@ proc hasAVX2*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   AVX2.onThread(affinity)
 
-proc hasAVX512F*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasAVX512F*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
@@ -467,7 +467,7 @@ proc hasAVX512F*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   AVX512F.onThread(affinity)
 
-proc hasAVX512DQ*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasAVX512DQ*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
@@ -479,7 +479,7 @@ proc hasAVX512DQ*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   AVX512DQ.onThread(affinity)
 
-proc hasAVX512IFMA*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasAVX512IFMA*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
@@ -491,7 +491,7 @@ proc hasAVX512IFMA*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   AVX512IFMA.onThread(affinity)
 
-proc hasAVX512PF*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasAVX512PF*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
@@ -503,7 +503,7 @@ proc hasAVX512PF*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   AVX512PF.onThread(affinity)
 
-proc hasAVX512ER*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasAVX512ER*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
@@ -515,7 +515,7 @@ proc hasAVX512ER*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   AVX512ER.onThread(affinity)
 
-proc hasAVX512CD*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasAVX512CD*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
@@ -527,7 +527,7 @@ proc hasAVX512CD*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   AVX512CD.onThread(affinity)
 
-proc hasAVX512BW*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasAVX512BW*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
@@ -539,7 +539,7 @@ proc hasAVX512BW*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   AVX512BW.onThread(affinity)
 
-proc hasAVX512VL*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasAVX512VL*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
@@ -551,7 +551,7 @@ proc hasAVX512VL*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   AVX512VL.onThread(affinity)
 
-proc hasAVX512VBMI*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasAVX512VBMI*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
@@ -563,7 +563,7 @@ proc hasAVX512VBMI*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   AVX512VBMI.onThread(affinity)
 
-proc hasAVX512VBMI2*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasAVX512VBMI2*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
@@ -575,7 +575,7 @@ proc hasAVX512VBMI2*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   AVX512VBMI2.onThread(affinity)
 
-proc hasAVX512VPOPCNTDQ*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasAVX512VPOPCNTDQ*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use the AVX (Advanced Vector Extensions)
@@ -588,7 +588,7 @@ proc hasAVX512VPOPCNTDQ*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   AVX512VPOPCNTDQ.onThread(affinity)
 
-proc hasAVX512VNNI*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasAVX512VNNI*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
@@ -600,7 +600,7 @@ proc hasAVX512VNNI*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   AVX512VNNI.onThread(affinity)
 
-proc hasAVX512VNNIW4*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasAVX512VNNIW4*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
@@ -613,7 +613,7 @@ proc hasAVX512VNNIW4*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   AVX512VNNIW4.onThread(affinity)
 
-proc hasAVX512FMAPS4*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasAVX512FMAPS4*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
@@ -625,7 +625,7 @@ proc hasAVX512FMAPS4*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   AVX512FMAPS4.onThread(affinity)
 
-proc hasAVX512BITALG*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasAVX512BITALG*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
@@ -637,7 +637,7 @@ proc hasAVX512BITALG*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   AVX512BITALG.onThread(affinity)
 
-proc hasAVX512BFLOAT16*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasAVX512BFLOAT16*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
   ## 512-bit BFLOAT16 (8-bit exponent, 7-bit mantissa) instructions used by
@@ -649,7 +649,7 @@ proc hasAVX512BFLOAT16*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   AVX512BFLOAT16.onThread(affinity)
 
-proc hasAVX512VP2INTERSECT*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasAVX512VP2INTERSECT*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware can use AVX (Advanced Vector Extensions)
@@ -662,7 +662,7 @@ proc hasAVX512VP2INTERSECT*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   AVX512VP2INTERSECT.onThread(affinity)
 
-proc hasRDRAND*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasRDRAND*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the `RDRAND` instruction,
@@ -674,7 +674,7 @@ proc hasRDRAND*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   RDRAND.onThread(affinity)
 
-proc hasRDSEED*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasRDSEED*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the `RDSEED` instruction,
@@ -687,7 +687,7 @@ proc hasRDSEED*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   RDSEED.onThread(affinity)
 
-proc hasMOVBigEndian*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasMOVBigEndian*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the `MOVBE` instruction for
@@ -699,7 +699,7 @@ proc hasMOVBigEndian*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   MOVBigEndian.onThread(affinity)
 
-proc hasPOPCNT*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasPOPCNT*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the `POPCNT` (population
@@ -711,7 +711,7 @@ proc hasPOPCNT*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   POPCNT.onThread(affinity)
 
-proc hasFMA3*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasFMA3*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the FMA3 (Fused Multiply
@@ -723,7 +723,7 @@ proc hasFMA3*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   FMA3.onThread(affinity)
 
-proc hasFMA4*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasFMA4*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the FMA4 (Fused Multiply
@@ -735,7 +735,7 @@ proc hasFMA4*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   FMA4.onThread(affinity)
 
-proc hasXOP*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasXOP*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the XOP (eXtended
@@ -750,7 +750,7 @@ proc hasXOP*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   XOP.onThread(affinity)
 
-proc hasCAS8B*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasCAS8B*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the (`LOCK`-able)
@@ -762,7 +762,7 @@ proc hasCAS8B*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   CAS8B.onThread(affinity)
 
-proc hasCAS16B*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasCAS16B*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the (`LOCK`-able)
@@ -774,7 +774,7 @@ proc hasCAS16B*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   CAS16B.onThread(affinity)
 
-proc hasABM*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasABM*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for ABM (Advanced Bit
@@ -787,7 +787,7 @@ proc hasABM*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   ABM.onThread(affinity)
 
-proc hasBMI1*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasBMI1*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for BMI (Bit Manipulation) 1.0
@@ -799,7 +799,7 @@ proc hasBMI1*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   BMI1.onThread(affinity)
 
-proc hasBMI2*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasBMI2*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for BMI (Bit Manipulation) 2.0
@@ -811,7 +811,7 @@ proc hasBMI2*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   BMI2.onThread(affinity)
 
-proc hasTSXHLE*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasTSXHLE*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for HLE (Hardware Lock Elision)
@@ -823,7 +823,7 @@ proc hasTSXHLE*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   TSXHLE.onThread(affinity)
 
-proc hasTSXRTM*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasTSXRTM*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for RTM (Restricted
@@ -836,7 +836,7 @@ proc hasTSXRTM*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   TSXRTM.onThread(affinity)
 
-proc hasADX*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasADX*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for ADX (Multi-percision
@@ -848,7 +848,7 @@ proc hasADX*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   ADX.onThread(affinity)
 
-proc hasSGX*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasSGX*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for SGX (Software Guard
@@ -860,7 +860,7 @@ proc hasSGX*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   SGX.onThread(affinity)
 
-proc hasGFNI*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasGFNI*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for GFNI (Galois Field Affine
@@ -872,7 +872,7 @@ proc hasGFNI*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   GFNI.onThread(affinity)
 
-proc hasAES*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasAES*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for AESNI (Advanced Encryption
@@ -884,7 +884,7 @@ proc hasAES*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   AES.onThread(affinity)
 
-proc hasVAES*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasVAES*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for VAES (Vectorized Advanced
@@ -896,7 +896,7 @@ proc hasVAES*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   VAES.onThread(affinity)
 
-proc hasVPCLMULQDQ*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasVPCLMULQDQ*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for `VCLMULQDQ` (512 and 256-bit
@@ -908,7 +908,7 @@ proc hasVPCLMULQDQ*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   VPCLMULQDQ.onThread(affinity)
 
-proc hasPCLMULQDQ*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasPCLMULQDQ*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for `PCLMULQDQ` (128-bit
@@ -920,7 +920,7 @@ proc hasPCLMULQDQ*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   PCLMULQDQ.onThread(affinity)
 
-proc hasNXBit*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasNXBit*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for NX-bit (No-eXecute)
@@ -932,7 +932,7 @@ proc hasNXBit*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   NXBit.onThread(affinity)
 
-proc hasFloat16c*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasFloat16c*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for F16C instructions, used for
@@ -945,7 +945,7 @@ proc hasFloat16c*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   Float16c.onThread(affinity)
 
-proc hasSHA*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasSHA*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for SHA (Secure Hash Algorithm)
@@ -957,7 +957,7 @@ proc hasSHA*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   SHA.onThread(affinity)
 
-proc hasCLFLUSH*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasCLFLUSH*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the `CLFLUSH` (Cache-line
@@ -969,7 +969,7 @@ proc hasCLFLUSH*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   CLFLUSH.onThread(affinity)
 
-proc hasCLFLUSHOPT*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasCLFLUSHOPT*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the `CLFLUSHOPT` (Cache-line
@@ -981,7 +981,7 @@ proc hasCLFLUSHOPT*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   CLFLUSHOPT.onThread(affinity)
 
-proc hasCLWB*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasCLWB*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the `CLWB` (Cache-line Write
@@ -993,7 +993,7 @@ proc hasCLWB*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   CLWB.onThread(affinity)
 
-proc hasPrefetchWT1*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasPrefetchWT1*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for the `PREFECTHWT1`
@@ -1005,7 +1005,7 @@ proc hasPrefetchWT1*(affinity = currentaffinity()) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   PrefetchWT1.onThread(affinity)
 
-proc hasMPX*(affinity = currentaffinity()) :bool {.inline.} =
+proc hasMPX*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
   ##
   ## Reports `true` if the hardware has support for MPX (Memory Protection

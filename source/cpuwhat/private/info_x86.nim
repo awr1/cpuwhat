@@ -155,6 +155,15 @@ template cached(expression :untyped) :bool =
   let cache {.global.} = expression
   expression
 
+proc currentAffinity() :uint {.inline.} =
+  when defined(windows):
+    proc GetCurrentProcessorNumber() :uint32
+      {.importc, stdcall, dynlib: "Kernel32".}
+    GetCurrentProcessorNumber.uint
+  else:
+    # TODO(awr1): Implement this on Linux/MacOS, etc.
+    discard
+
 proc hasCongruentISA*() :bool {.inline.} =
   ## Reports `true` if the available instruction feature set is the same across
   ## all cores. This does not necessarily mean the CPU cores are homogenous,
@@ -258,7 +267,7 @@ proc hasMMX*(affinity = 0'u) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   ##
   ## .. _MSDN: https://docs.microsoft.com/en-us/windows/win32/dxtecharts/sixty-four-bit-programming-for-game-developers#porting-applications-to-64-bit-platforms
-  hasMMXImpl
+  MMX.onThread(affinity)
 
 proc hasMMXExt*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -274,7 +283,7 @@ proc hasMMXExt*(affinity = 0'u) :bool {.inline.} =
   ## `hasCongruentISA` procedure for more.)
   ##
   ## .. _MSDN: https://docs.microsoft.com/en-us/windows/win32/dxtecharts/sixty-four-bit-programming-for-game-developers#porting-applications-to-64-bit-platforms
-  hasMMXExtImpl
+  MMXExt.onThread(affinity)
 
 proc has3DNow*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -294,7 +303,7 @@ proc has3DNow*(affinity = 0'u) :bool {.inline.} =
   ##
   ## .. _MSDN: https://docs.microsoft.com/en-us/windows/win32/dxtecharts/sixty-four-bit-programming-for-game-developers#porting-applications-to-64-bit-platforms
   ## .. _`AMD Developer Central`: https://web.archive.org/web/20131109151245/http://developer.amd.com/community/blog/2010/08/18/3dnow-deprecated/
-  has3DNowImpl
+  3DNow.onThread(affinity)
 
 proc has3DNowEnhanced*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -314,7 +323,7 @@ proc has3DNowEnhanced*(affinity = 0'u) :bool {.inline.} =
   ##
   ## .. _MSDN: https://docs.microsoft.com/en-us/windows/win32/dxtecharts/sixty-four-bit-programming-for-game-developers#porting-applications-to-64-bit-platforms
   ## .. _`AMD Developer Central`: https://web.archive.org/web/20131109151245/http://developer.amd.com/community/blog/2010/08/18/3dnow-deprecated/
-  has3DNowEnhancedImpl
+  3DNowEnhanced.onThread(affinity)
 
 proc hasPrefetch*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -328,7 +337,7 @@ proc hasPrefetch*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasPrefetchImpl
+  Prefetch.onThread(affinity)
 
 proc hasSSE*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -343,7 +352,7 @@ proc hasSSE*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasSSEImpl
+  SSE.onThread(affinity)
 
 proc hasSSE2*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -358,7 +367,7 @@ proc hasSSE2*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasSSE2Impl
+  SSE2.onThread(affinity)
 
 proc hasSSE3*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -370,7 +379,7 @@ proc hasSSE3*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasSSE3Impl
+  SSE3.onThread(affinity)
 
 proc hasSSSE3*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -382,7 +391,7 @@ proc hasSSSE3*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasSSSE3Impl
+  SSSE3.onThread(affinity)
 
 proc hasSSE4a*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -394,7 +403,7 @@ proc hasSSE4a*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasSSE4aImpl
+  SSE4a.onThread(affinity)
 
 proc hasSSE41*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -406,7 +415,7 @@ proc hasSSE41*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasSSE41Impl
+  SSE41.onThread(affinity)
 
 proc hasSSE42*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -418,7 +427,7 @@ proc hasSSE42*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasSSE42Impl
+  SSE42.onThread(affinity)
 
 proc hasAVX*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -432,7 +441,7 @@ proc hasAVX*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasAVXImpl
+  AVX.onThread(affinity)
 
 proc hasAVX2*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -444,7 +453,7 @@ proc hasAVX2*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasAVX2Impl
+  AVX2.onThread(affinity)
 
 proc hasAVX512F*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -456,7 +465,7 @@ proc hasAVX512F*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasAVX512FImpl
+  AVX512F.onThread(affinity)
 
 proc hasAVX512DQ*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -468,7 +477,7 @@ proc hasAVX512DQ*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasAVX512DQImpl
+  AVX512DQ.onThread(affinity)
 
 proc hasAVX512IFMA*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -480,7 +489,7 @@ proc hasAVX512IFMA*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasAVX512IFMAImpl
+  AVX512IFMA.onThread(affinity)
 
 proc hasAVX512PF*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -492,7 +501,7 @@ proc hasAVX512PF*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasAVX512PFImpl
+  AVX512PF.onThread(affinity)
 
 proc hasAVX512ER*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -504,7 +513,7 @@ proc hasAVX512ER*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasAVX512ERImpl
+  AVX512ER.onThread(affinity)
 
 proc hasAVX512CD*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -516,7 +525,7 @@ proc hasAVX512CD*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasAVX512CDImpl
+  AVX512CD.onThread(affinity)
 
 proc hasAVX512BW*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -528,7 +537,7 @@ proc hasAVX512BW*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasAVX512BWImpl
+  AVX512BW.onThread(affinity)
 
 proc hasAVX512VL*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -540,7 +549,7 @@ proc hasAVX512VL*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasAVX512VLImpl
+  AVX512VL.onThread(affinity)
 
 proc hasAVX512VBMI*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -552,7 +561,7 @@ proc hasAVX512VBMI*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasAVX512VBMIImpl
+  AVX512VBMI.onThread(affinity)
 
 proc hasAVX512VBMI2*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -564,7 +573,7 @@ proc hasAVX512VBMI2*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasAVX512VBMI2Impl
+  AVX512VBMI2.onThread(affinity)
 
 proc hasAVX512VPOPCNTDQ*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -577,7 +586,7 @@ proc hasAVX512VPOPCNTDQ*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasAVX512VPOPCNTDQImpl
+  AVX512VPOPCNTDQ.onThread(affinity)
 
 proc hasAVX512VNNI*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -589,7 +598,7 @@ proc hasAVX512VNNI*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasAVX512VNNIImpl
+  AVX512VNNI.onThread(affinity)
 
 proc hasAVX512VNNIW4*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -602,7 +611,7 @@ proc hasAVX512VNNIW4*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasAVX512VNNIW4Impl
+  AVX512VNNIW4.onThread(affinity)
 
 proc hasAVX512FMAPS4*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -614,7 +623,7 @@ proc hasAVX512FMAPS4*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasAVX512FMAPS4Impl
+  AVX512FMAPS4.onThread(affinity)
 
 proc hasAVX512BITALG*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -626,7 +635,7 @@ proc hasAVX512BITALG*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasAVX512BITALGImpl
+  AVX512BITALG.onThread(affinity)
 
 proc hasAVX512BFLOAT16*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -638,7 +647,7 @@ proc hasAVX512BFLOAT16*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasAVX512BFLOAT16Impl
+  AVX512BFLOAT16.onThread(affinity)
 
 proc hasAVX512VP2INTERSECT*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -651,7 +660,7 @@ proc hasAVX512VP2INTERSECT*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasAVX512VP2INTERSECTImpl
+  AVX512VP2INTERSECT.onThread(affinity)
 
 proc hasRDRAND*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -663,7 +672,7 @@ proc hasRDRAND*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasRDRANDImpl
+  RDRAND.onThread(affinity)
 
 proc hasRDSEED*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -676,7 +685,7 @@ proc hasRDSEED*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasRDSEEDImpl
+  RDSEED.onThread(affinity)
 
 proc hasMOVBigEndian*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -688,7 +697,7 @@ proc hasMOVBigEndian*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasMOVBigEndianImpl
+  MOVBigEndian.onThread(affinity)
 
 proc hasPOPCNT*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -700,7 +709,7 @@ proc hasPOPCNT*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasPOPCNTImpl
+  POPCNT.onThread(affinity)
 
 proc hasFMA3*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -712,7 +721,7 @@ proc hasFMA3*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasFMA3Impl
+  FMA3.onThread(affinity)
 
 proc hasFMA4*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -724,7 +733,7 @@ proc hasFMA4*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasFMA4Impl
+  FMA4.onThread(affinity)
 
 proc hasXOP*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -739,7 +748,7 @@ proc hasXOP*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasXOPImpl
+  XOP.onThread(affinity)
 
 proc hasCAS8B*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -751,7 +760,7 @@ proc hasCAS8B*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasCAS8BImpl
+  CAS8B.onThread(affinity)
 
 proc hasCAS16B*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -763,7 +772,7 @@ proc hasCAS16B*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasCAS16BImpl
+  CAS16B.onThread(affinity)
 
 proc hasABM*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -776,7 +785,7 @@ proc hasABM*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasABMImpl
+  ABM.onThread(affinity)
 
 proc hasBMI1*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -788,7 +797,7 @@ proc hasBMI1*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasBMI1Impl
+  BMI1.onThread(affinity)
 
 proc hasBMI2*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -800,7 +809,7 @@ proc hasBMI2*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasBMI2Impl
+  BMI2.onThread(affinity)
 
 proc hasTSXHLE*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -812,7 +821,7 @@ proc hasTSXHLE*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasTSXHLEImpl
+  TSXHLE.onThread(affinity)
 
 proc hasTSXRTM*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -825,7 +834,7 @@ proc hasTSXRTM*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasTSXRTMImpl
+  TSXRTM.onThread(affinity)
 
 proc hasADX*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -837,7 +846,7 @@ proc hasADX*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasADXImpl
+  ADX.onThread(affinity)
 
 proc hasSGX*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -849,7 +858,7 @@ proc hasSGX*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasSGXImpl
+  SGX.onThread(affinity)
 
 proc hasGFNI*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -861,7 +870,7 @@ proc hasGFNI*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasGFNIImpl
+  GFNI.onThread(affinity)
 
 proc hasAES*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -873,7 +882,7 @@ proc hasAES*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasAESImpl
+  AES.onThread(affinity)
 
 proc hasVAES*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -885,7 +894,7 @@ proc hasVAES*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasVAESImpl
+  VAES.onThread(affinity)
 
 proc hasVPCLMULQDQ*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -897,7 +906,7 @@ proc hasVPCLMULQDQ*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasVPCLMULQDQImpl
+  VPCLMULQDQ.onThread(affinity)
 
 proc hasPCLMULQDQ*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -909,7 +918,7 @@ proc hasPCLMULQDQ*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasPCLMULQDQImpl
+  PCLMULQDQ.onThread(affinity)
 
 proc hasNXBit*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -921,7 +930,7 @@ proc hasNXBit*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasNXBitImpl
+  NXBit.onThread(affinity)
 
 proc hasFloat16c*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -934,7 +943,7 @@ proc hasFloat16c*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasFloat16cImpl
+  Float16c.onThread(affinity)
 
 proc hasSHA*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -946,7 +955,7 @@ proc hasSHA*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasSHAImpl
+  SHA.onThread(affinity)
 
 proc hasCLFLUSH*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -958,7 +967,7 @@ proc hasCLFLUSH*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasCLFLUSHImpl
+  CLFLUSH.onThread(affinity)
 
 proc hasCLFLUSHOPT*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -970,7 +979,7 @@ proc hasCLFLUSHOPT*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasCLFLUSHOPTImpl
+  CLFLUSHOPT.onThread(affinity)
 
 proc hasCLWB*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -982,7 +991,7 @@ proc hasCLWB*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasCLWBImpl
+  CLWB.onThread(affinity)
 
 proc hasPrefetchWT1*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -994,7 +1003,7 @@ proc hasPrefetchWT1*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasPrefetchWT1Impl
+  PrefetchWT1.onThread(affinity)
 
 proc hasMPX*(affinity = 0'u) :bool {.inline.} =
   ## **(x86 Only)**
@@ -1006,4 +1015,4 @@ proc hasMPX*(affinity = 0'u) :bool {.inline.} =
   ## threads. (Begining with Intel's Alder Lake, some x86 processors may exhibit
   ## ISA feature set incongurence across heterogenous cores; see the
   ## `hasCongruentISA` procedure for more.)
-  hasMPXImpl
+  MPX.onThread(affinity)

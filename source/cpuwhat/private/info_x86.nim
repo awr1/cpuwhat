@@ -2,6 +2,7 @@ import
   std / strutils,
   std / cpuinfo,
   std / sequtils,
+  std / locks,
   std / bitops
 
 proc cpuidX86(eaxi, ecxi :int32) :tuple[eax, ebx, ecx, edx :int32] =
@@ -41,107 +42,114 @@ type
 let
   cpuCount {.global.} = countProcessors()
   features {.global.} = block:
-    var supported {.global.} = newSeq[set[X86Feature]](cpuCount)
+    var
+      supported {.global.} = newSeq[set[X86Feature]](cpuCount)
+      cpuPinner {.global.} :Lock
+    cpuPinner.initLock
+
     proc gatherFeatures(affinity :int) {.thread.} =
-      let
-        leaf1 = cpuidX86(eaxi = 1, ecxi = 0)
-        leaf7 = cpuidX86(eaxi = 7, ecxi = 0)
-        leaf8 = cpuidX86(eaxi = 0x80000001'i32, ecxi = 0)
+      {.cast(gcsafe).}:
+        withLock(cpuPinner):
+          let
+            leaf1 = cpuidX86(eaxi = 1, ecxi = 0)
+            leaf7 = cpuidX86(eaxi = 7, ecxi = 0)
+            leaf8 = cpuidX86(eaxi = 0x80000001'i32, ecxi = 0)
 
-      # see: https://en.wikipedia.org/wiki/CPUID#Calling_CPUID
-      # see: Intel® Architecture Instruction Set Extensions and Future Features
-      #      Programming Reference
-      for feature in X86Feature:
-        func test(input, bit :int) :bool = ((1 shl bit) and input) != 0
-        let validity = case feature
-          # Leaf 1, EDX
-          of X87FPU:             leaf1.edx.test(0)
-          of CLFLUSH:            leaf1.edx.test(19)
-          of MMX:                leaf1.edx.test(23)
-          of SSE:                leaf1.edx.test(25)
-          of SSE2:               leaf1.edx.test(26)
-          of Hyperthreading:     leaf1.edx.test(28)
+          # see: https://en.wikipedia.org/wiki/CPUID#Calling_CPUID
+          # see: Intel® Architecture Instruction Set Extensions and
+          #      Future Features Programming Reference
+          for feature in X86Feature:
+            func test(input, bit :int) :bool = ((1 shl bit) and input) != 0
+            let validity = case feature
+              # Leaf 1, EDX
+              of X87FPU:             leaf1.edx.test(0)
+              of CLFLUSH:            leaf1.edx.test(19)
+              of MMX:                leaf1.edx.test(23)
+              of SSE:                leaf1.edx.test(25)
+              of SSE2:               leaf1.edx.test(26)
+              of Hyperthreading:     leaf1.edx.test(28)
 
-          # Leaf 1, ECX
-          of SSE3:               leaf1.ecx.test(0)
-          of PCLMULQDQ:          leaf1.ecx.test(1)
-          of IntelVTX:           leaf1.ecx.test(5)
-          of SSSE3:              leaf1.ecx.test(9)
-          of FMA3:               leaf1.ecx.test(12)
-          of CAS16B:             leaf1.ecx.test(13)
-          of SSE41:              leaf1.ecx.test(19)
-          of SSE42:              leaf1.ecx.test(20)
-          of MOVBigEndian:       leaf1.ecx.test(22)
-          of POPCNT:             leaf1.ecx.test(23)
-          of AES:                leaf1.ecx.test(25)
-          of AVX:                leaf1.ecx.test(28)
-          of Float16c:           leaf1.ecx.test(29)
-          of RDRAND:             leaf1.ecx.test(30)
-          of HypervisorPresence: leaf1.ecx.test(31)
+              # Leaf 1, ECX
+              of SSE3:               leaf1.ecx.test(0)
+              of PCLMULQDQ:          leaf1.ecx.test(1)
+              of IntelVTX:           leaf1.ecx.test(5)
+              of SSSE3:              leaf1.ecx.test(9)
+              of FMA3:               leaf1.ecx.test(12)
+              of CAS16B:             leaf1.ecx.test(13)
+              of SSE41:              leaf1.ecx.test(19)
+              of SSE42:              leaf1.ecx.test(20)
+              of MOVBigEndian:       leaf1.ecx.test(22)
+              of POPCNT:             leaf1.ecx.test(23)
+              of AES:                leaf1.ecx.test(25)
+              of AVX:                leaf1.ecx.test(28)
+              of Float16c:           leaf1.ecx.test(29)
+              of RDRAND:             leaf1.ecx.test(30)
+              of HypervisorPresence: leaf1.ecx.test(31)
 
-          # Leaf 7, ECX
-          of PrefetchWT1:        leaf7.ecx.test(0)
-          of AVX512VBMI:         leaf7.ecx.test(1)
-          of AVX512VBMI2:        leaf7.ecx.test(6)
-          of GFNI:               leaf7.ecx.test(8)
-          of VAES:               leaf7.ecx.test(9)
-          of VPCLMULQDQ:         leaf7.ecx.test(10)
-          of AVX512VNNI:         leaf7.ecx.test(11)
-          of AVX512BITALG:       leaf7.ecx.test(12)
-          of AVX512VPOPCNTDQ:    leaf7.ecx.test(14)
+              # Leaf 7, ECX
+              of PrefetchWT1:        leaf7.ecx.test(0)
+              of AVX512VBMI:         leaf7.ecx.test(1)
+              of AVX512VBMI2:        leaf7.ecx.test(6)
+              of GFNI:               leaf7.ecx.test(8)
+              of VAES:               leaf7.ecx.test(9)
+              of VPCLMULQDQ:         leaf7.ecx.test(10)
+              of AVX512VNNI:         leaf7.ecx.test(11)
+              of AVX512BITALG:       leaf7.ecx.test(12)
+              of AVX512VPOPCNTDQ:    leaf7.ecx.test(14)
 
-          # Leaf 7, EAX
-          of AVX512BFLOAT16:     leaf7.eax.test(5)
+              # Leaf 7, EAX
+              of AVX512BFLOAT16:     leaf7.eax.test(5)
 
-          # Leaf 7, EBX
-          of SGX:                leaf7.ebx.test(2)
-          of BMI1:               leaf7.ebx.test(3)
-          of TSXHLE:             leaf7.ebx.test(4)
-          of AVX2:               leaf7.ebx.test(5)
-          of BMI2:               leaf7.ebx.test(8)
-          of TSXRTM:             leaf7.ebx.test(11)
-          of MPX:                leaf7.ebx.test(14)
-          of AVX512F:            leaf7.ebx.test(16)
-          of AVX512DQ:           leaf7.ebx.test(17)
-          of RDSEED:             leaf7.ebx.test(18)
-          of ADX:                leaf7.ebx.test(19)
-          of AVX512IFMA:         leaf7.ebx.test(21)
-          of CLFLUSHOPT:         leaf7.ebx.test(23)
-          of CLWB:               leaf7.ebx.test(24)
-          of AVX512PF:           leaf7.ebx.test(26)
-          of AVX512ER:           leaf7.ebx.test(27)
-          of AVX512CD:           leaf7.ebx.test(28)
-          of SHA:                leaf7.ebx.test(29)
-          of AVX512BW:           leaf7.ebx.test(30)
-          of AVX512VL:           leaf7.ebx.test(31)
+              # Leaf 7, EBX
+              of SGX:                leaf7.ebx.test(2)
+              of BMI1:               leaf7.ebx.test(3)
+              of TSXHLE:             leaf7.ebx.test(4)
+              of AVX2:               leaf7.ebx.test(5)
+              of BMI2:               leaf7.ebx.test(8)
+              of TSXRTM:             leaf7.ebx.test(11)
+              of MPX:                leaf7.ebx.test(14)
+              of AVX512F:            leaf7.ebx.test(16)
+              of AVX512DQ:           leaf7.ebx.test(17)
+              of RDSEED:             leaf7.ebx.test(18)
+              of ADX:                leaf7.ebx.test(19)
+              of AVX512IFMA:         leaf7.ebx.test(21)
+              of CLFLUSHOPT:         leaf7.ebx.test(23)
+              of CLWB:               leaf7.ebx.test(24)
+              of AVX512PF:           leaf7.ebx.test(26)
+              of AVX512ER:           leaf7.ebx.test(27)
+              of AVX512CD:           leaf7.ebx.test(28)
+              of SHA:                leaf7.ebx.test(29)
+              of AVX512BW:           leaf7.ebx.test(30)
+              of AVX512VL:           leaf7.ebx.test(31)
 
-          # Leaf 7, EDX
-          of AVX512VNNIW4:       leaf7.edx.test(2)
-          of AVX512FMAPS4:       leaf7.edx.test(3)
-          of AVX512VP2INTERSECT: leaf7.edx.test(8)
+              # Leaf 7, EDX
+              of AVX512VNNIW4:       leaf7.edx.test(2)
+              of AVX512FMAPS4:       leaf7.edx.test(3)
+              of AVX512VP2INTERSECT: leaf7.edx.test(8)
 
-          # Leaf 8, EDX
-          of NoSMT:              leaf8.edx.test(1)
-          of CAS8B:              leaf8.edx.test(8)
-          of NXBit:              leaf8.edx.test(20)
-          of MMXExt:             leaf8.edx.test(22)
-          of F3DNowEnhanced:     leaf8.edx.test(30)
-          of F3DNow:             leaf8.edx.test(31)
+              # Leaf 8, EDX
+              of NoSMT:              leaf8.edx.test(1)
+              of CAS8B:              leaf8.edx.test(8)
+              of NXBit:              leaf8.edx.test(20)
+              of MMXExt:             leaf8.edx.test(22)
+              of F3DNowEnhanced:     leaf8.edx.test(30)
+              of F3DNow:             leaf8.edx.test(31)
 
-          # Leaf 8, ECX
-          of AMDV:               leaf8.ecx.test(2)
-          of ABM:                leaf8.ecx.test(5)
-          of SSE4a:              leaf8.ecx.test(6)
-          of Prefetch:           leaf8.ecx.test(8)
-          of XOP:                leaf8.ecx.test(11)
-          of FMA4:               leaf8.ecx.test(16)
-        {.cast(gcsafe).}:
-          if validity: supported[affinity].incl(feature)
+              # Leaf 8, ECX
+              of AMDV:               leaf8.ecx.test(2)
+              of ABM:                leaf8.ecx.test(5)
+              of SSE4a:              leaf8.ecx.test(6)
+              of Prefetch:           leaf8.ecx.test(8)
+              of XOP:                leaf8.ecx.test(11)
+              of FMA4:               leaf8.ecx.test(16)
+
+            if validity: supported[affinity].incl(feature)
 
     var threads = newSeq[Thread[int]](cpuCount)
     for affinity, thread in threads.mpairs:
-      thread.pinToCPU(affinity)
-      thread.createThread(gatherFeatures, affinity)
+      cpuPinner.withLock:
+        thread.createThread(gatherFeatures, affinity)
+        thread.pinToCPU(affinity)
     threads.joinThreads
 
     var featuresByAffinity :array[X86Feature, uint64]

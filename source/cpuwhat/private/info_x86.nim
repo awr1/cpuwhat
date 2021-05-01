@@ -56,8 +56,8 @@ let
             leaf8 = cpuidX86(eaxi = 0x80000001'i32, ecxi = 0)
 
           # see: https://en.wikipedia.org/wiki/CPUID#Calling_CPUID
-          # see: Intel® Architecture Instruction Set Extensions and
-          #      Future Features Programming Reference
+          # see: Intel® Architecture Instruction Set Extensions and Future
+          #      Features Programming Reference
           for feature in X86Feature:
             func test(input, bit :int) :bool = ((1 shl bit) and input) != 0
             let validity = case feature

@@ -1,6 +1,5 @@
 import
   std / strutils,
-  std / threads,
   std / cpuinfo,
   std / sequtils,
   std / bitops
@@ -42,7 +41,8 @@ type
 let
   cpuCount {.global.} = countProcessors()
   features {.global.} = block:
-    func gatherFeatures(supported :var set[X86Feature]) =
+    var supported {.global.} = newSeq[set[X86Feature]](cpuCount)
+    proc gatherFeatures(affinity :int) {.thread.} =
       let
         leaf1 = cpuidX86(eaxi = 1, ecxi = 0)
         leaf7 = cpuidX86(eaxi = 7, ecxi = 0)
@@ -135,18 +135,17 @@ let
           of Prefetch:           leaf8.ecx.test(8)
           of XOP:                leaf8.ecx.test(11)
           of FMA4:               leaf8.ecx.test(16)
-        if validity: supported.incl(feature)
+        {.cast(gcsafe).}:
+          if validity: supported[affinity].incl(feature)
 
-    var
-      featureSets = newSeq[set[X86Feature]](cpuCount)
-      threads     = newSeq[Thread[var set[X86Feature]]](cpuCount)
+    var threads = newSeq[Thread[int]](cpuCount)
     for affinity, thread in threads.mpairs:
       thread.pinToCPU(affinity)
-      thread.createThread(gatherFeatures, featureSets[affinity])
+      thread.createThread(gatherFeatures, affinity)
     threads.joinThreads
 
     var featuresByAffinity :array[X86Feature, uint64]
-    for affinity, featureSet in featureSets:
+    for affinity, featureSet in supported:
       for feature in featureSet:
         featuresByAffinity[feature].setBit(affinity)
     featuresByAffinity
@@ -155,11 +154,11 @@ template cached(expression :untyped) :bool =
   let cache {.global.} = expression
   expression
 
-proc currentAffinity() :uint {.inline.} =
+proc currentAffinity() :int {.inline.} =
   when defined(windows):
     proc GetCurrentProcessorNumber() :uint32
       {.importc, stdcall, dynlib: "Kernel32".}
-    GetCurrentProcessorNumber.uint
+    GetCurrentProcessorNumber().int
   else:
     # TODO(awr1): Implement this on Linux/MacOS, etc.
     discard
@@ -203,10 +202,10 @@ proc hasSimultaneousMultithreading*() :bool {.inline.} =
   ## (branded as *"hyperthreads"* on Intel processors).
   cached (features[Hyperthreading] or not features[NoSMT]).testBit(0)
 
-template onThread(feature :X86Feature; affinity :uint) :bool =
+template onThread(feature :X86Feature; affinity :int) :bool =
   when compileOption("rangeChecks"):
     if affinity notin 0 ..< cpuCount:
-      IndexError.newException(
+      raise IndexError.newException(
         "Requested affinity greater than number of logical processors")
   features[feature].testBit(affinity)
 
@@ -303,7 +302,7 @@ proc has3DNow*(affinity = currentAffinity()) :bool {.inline.} =
   ##
   ## .. _MSDN: https://docs.microsoft.com/en-us/windows/win32/dxtecharts/sixty-four-bit-programming-for-game-developers#porting-applications-to-64-bit-platforms
   ## .. _`AMD Developer Central`: https://web.archive.org/web/20131109151245/http://developer.amd.com/community/blog/2010/08/18/3dnow-deprecated/
-  3DNow.onThread(affinity)
+  F3DNow.onThread(affinity)
 
 proc has3DNowEnhanced*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
@@ -323,7 +322,7 @@ proc has3DNowEnhanced*(affinity = currentAffinity()) :bool {.inline.} =
   ##
   ## .. _MSDN: https://docs.microsoft.com/en-us/windows/win32/dxtecharts/sixty-four-bit-programming-for-game-developers#porting-applications-to-64-bit-platforms
   ## .. _`AMD Developer Central`: https://web.archive.org/web/20131109151245/http://developer.amd.com/community/blog/2010/08/18/3dnow-deprecated/
-  3DNowEnhanced.onThread(affinity)
+  F3DNowEnhanced.onThread(affinity)
 
 proc hasPrefetch*(affinity = currentAffinity()) :bool {.inline.} =
   ## **(x86 Only)**
